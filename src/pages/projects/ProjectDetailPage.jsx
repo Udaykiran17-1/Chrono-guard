@@ -39,6 +39,11 @@ import {
   getSavedProjectIds,
 } from '../../services/projectService';
 import { getRecommendedFreelancers } from '../../services/talentService';
+import {
+  getUserApplication,
+  getApplicationsForProject,
+} from '../../services/applicationService';
+import ApplyProjectModal from '../../components/projects/ApplyProjectModal';
 
 export default function ProjectDetailPage() {
   const { id } = useParams();
@@ -49,6 +54,8 @@ export default function ProjectDetailPage() {
   const [project, setProject] = useState(null);
   const [isSaved, setIsSaved] = useState(false);
   const [recommendedTalent, setRecommendedTalent] = useState([]);
+  const [userApplication, setUserApplication] = useState(null);
+  const [applicantCount, setApplicantCount] = useState(0);
   const [error, setError] = useState('');
   const [actionSuccess, setActionSuccess] = useState('');
 
@@ -57,34 +64,41 @@ export default function ProjectDetailPage() {
   const [cancelReason, setCancelReason] = useState('');
   const [cancelling, setCancelling] = useState(false);
 
-  // Apply Modal Placeholder
+  // Apply Modal
   const [showApplyModal, setShowApplyModal] = useState(false);
 
-  useEffect(() => {
-    async function loadProject() {
-      if (!id) return;
-      setLoading(true);
-      try {
-        const proj = await getProjectById(id);
-        setProject(proj);
+  const fetchProjectAndApplication = async () => {
+    if (!id) return;
+    try {
+      const proj = await getProjectById(id);
+      setProject(proj);
 
-        // Fetch recommended talent for this project
-        const skillIds = (proj.skills || []).map((s) => s.id);
-        const rec = await getRecommendedFreelancers(skillIds);
-        setRecommendedTalent(rec);
+      // Fetch recommended talent for this project
+      const skillIds = (proj.skills || []).map((s) => s.id);
+      const rec = await getRecommendedFreelancers(skillIds);
+      setRecommendedTalent(rec);
 
-        if (user?.id) {
-          const savedIds = await getSavedProjectIds(user.id);
-          setIsSaved(savedIds.includes(proj.id));
+      if (user?.id) {
+        const [savedIds, existingApp, projectApps] = await Promise.all([
+          getSavedProjectIds(user.id),
+          getUserApplication(proj.id, user.id),
+          user.id === proj.creator_id ? getApplicationsForProject(proj.id) : Promise.resolve([]),
+        ]);
+        setIsSaved(savedIds.includes(proj.id));
+        setUserApplication(existingApp);
+        if (user.id === proj.creator_id) {
+          setApplicantCount(projectApps.length);
         }
-      } catch (err) {
-        setError(err.message || 'Failed to load project details');
-      } finally {
-        setLoading(false);
       }
+    } catch (err) {
+      setError(err.message || 'Failed to load project details');
     }
-    loadProject();
-  }, [id, user]);
+  };
+
+  useEffect(() => {
+    setLoading(true);
+    fetchProjectAndApplication().finally(() => setLoading(false));
+  }, [id, user?.id]);
 
   const isCreator = user?.id && project?.creator_id === user.id;
 
@@ -474,6 +488,13 @@ export default function ProjectDetailPage() {
                 {isCreator ? (
                   /* Creator Actions */
                   <div className="space-y-2 w-full">
+                    <Link to={`/projects/${project.id}/applicants`} className="block w-full">
+                      <Button variant="primary" size="sm" className="w-full flex items-center justify-center gap-1.5 shadow-sm font-semibold">
+                        <Users className="h-4 w-4" />
+                        <span>Review Applicants ({applicantCount})</span>
+                      </Button>
+                    </Link>
+
                     <Link to={`/projects/${project.id}/edit`} className="block w-full">
                       <Button variant="outline" size="sm" className="w-full flex items-center justify-center gap-1.5">
                         <Edit3 className="h-4 w-4" />
@@ -507,16 +528,51 @@ export default function ProjectDetailPage() {
                   /* Peer Collaborator Actions */
                   <div className="space-y-2 w-full">
                     {user?.id ? (
-                      <Button
-                        variant="primary"
-                        size="md"
-                        disabled={isClosed}
-                        onClick={() => setShowApplyModal(true)}
-                        className="w-full flex items-center justify-center gap-2 shadow-sm font-semibold"
-                      >
-                        <Send className="h-4 w-4" />
-                        <span>{isClosed ? 'Applications Closed' : 'Apply for Project'}</span>
-                      </Button>
+                      userApplication ? (
+                        <div className="space-y-2">
+                          <div className="rounded-lg border border-teal-200 bg-teal-50 p-3 text-xs text-teal-900">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="font-bold flex items-center gap-1">
+                                <CheckCircle2 className="h-3.5 w-3.5 text-brand-teal" />
+                                <span>Proposal Submitted</span>
+                              </span>
+                              <Badge
+                                variant={
+                                  userApplication.status === 'accepted'
+                                    ? 'teal'
+                                    : userApplication.status === 'rejected'
+                                    ? 'red'
+                                    : userApplication.status === 'shortlisted'
+                                    ? 'indigo'
+                                    : 'neutral'
+                                }
+                                className="text-[10px] uppercase font-bold"
+                              >
+                                {userApplication.status.replace('_', ' ')}
+                              </Badge>
+                            </div>
+                            <p className="text-slate-600 text-[11px]">
+                              Applied on {new Date(userApplication.created_at).toLocaleDateString()} • {userApplication.estimated_days} days proposed
+                            </p>
+                          </div>
+                          <Link to="/dashboard" className="block w-full">
+                            <Button variant="outline" size="sm" className="w-full text-xs">
+                              Track in My Applications →
+                            </Button>
+                          </Link>
+                        </div>
+                      ) : (
+                        <Button
+                          variant="primary"
+                          size="md"
+                          disabled={isClosed}
+                          onClick={() => setShowApplyModal(true)}
+                          className="w-full flex items-center justify-center gap-2 shadow-sm font-semibold"
+                        >
+                          <Send className="h-4 w-4" />
+                          <span>{isClosed ? 'Applications Closed' : 'Apply for Project'}</span>
+                        </Button>
+                      )
                     ) : (
                       <Link to="/login" className="block w-full">
                         <Button variant="primary" size="md" className="w-full font-semibold">
@@ -601,36 +657,20 @@ export default function ProjectDetailPage() {
           </form>
         </Modal>
 
-        {/* ───── APPLY NOW PLACEHOLDER MODAL (Milestone 4 preview) ───── */}
-        <Modal
-          isOpen={showApplyModal}
-          onClose={() => setShowApplyModal(false)}
-          title={`Apply for "${project.title}"`}
-        >
-          <div className="space-y-4">
-            <div className="rounded-lg bg-indigo-50 border border-indigo-200 p-4 text-xs text-slate-700 leading-relaxed space-y-2">
-              <div className="flex items-center gap-2 font-bold text-brand-indigo">
-                <Sparkles className="h-4 w-4" />
-                <span>Milestone 4 Application Pipeline</span>
-              </div>
-              <p>
-                Structured proposals with timeline estimates, portfolio attachments, and revision limits will be submitted directly through the Application Pipeline launching in Milestone 4.
-              </p>
-              <p>
-                In the meantime, ensure your student profile has all relevant skills and portfolio items listed.
-              </p>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <Button variant="outline" onClick={() => setShowApplyModal(false)}>
-                Close
-              </Button>
-              <Link to="/profile/edit">
-                <Button variant="primary">Review My Profile & Skills</Button>
-              </Link>
-            </div>
-          </div>
-        </Modal>
+        {/* ───── APPLY FOR PROJECT 2-STEP MODAL ───── */}
+        {showApplyModal && (
+          <ApplyProjectModal
+            isOpen={showApplyModal}
+            onClose={() => setShowApplyModal(false)}
+            project={project}
+            user={user}
+            onSuccess={() => {
+              setActionSuccess('Your proposal has been successfully submitted to the project creator!');
+              fetchProjectAndApplication();
+              setTimeout(() => setActionSuccess(''), 6000);
+            }}
+          />
+        )}
       </PageContainer>
     </div>
   );
