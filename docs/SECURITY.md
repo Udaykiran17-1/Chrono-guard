@@ -93,3 +93,21 @@ The platform enforces state-machine constraints at the database trigger level:
 - Projects cannot arbitrarily transition between non-sequential statuses (e.g. `open` cannot jump directly to `completed` without an intermediate `in_progress` agreement phase).
 - Cancelling a project requires a non-empty `cancellation_reason` to provide transparency to applicants.
 - Completed and cancelled projects are immutable terminal states.
+
+## 5. Applications, Agreements and Workspaces
+
+- Applicants can read and withdraw only their own applications; project creators can read applications for their projects.
+- Application content and identity fields are immutable after submission. Acceptance must use the capacity-locking RPC and requires an authenticated project creator.
+- Cross-user application notifications are written by database triggers. Authenticated clients can only create notifications for themselves.
+- Agreement rows and version terms are readable only by the named client and freelancer. Version terms cannot be updated or deleted; parties accept the latest version through a database function.
+- Workspace milestones and updates are readable and writable only by project members with a mutually accepted latest agreement.
+- Scope-change and dispute requests are visible to their two named project participants. Only the named respondent can answer; an accepted scope change creates a fresh agreement version.
+
+## 6. Organizations, Reviews and Reports
+
+- Organization freelancer and handover records are protected by organization membership permissions.
+- Only platform administrators can mark an organization official or moderate reports and review visibility.
+- Reviews require a completed project and both reviewer and reviewee to be project members. Review content is immutable; admins can change visibility only.
+- Reports are private to their reporter and platform administrators. Moderation actions are stored in an administrator-only audit table.
+
+The policies and RPCs described here are defined in migrations `004` through `006`. Their behavior still needs validation against a configured Supabase project before production use.

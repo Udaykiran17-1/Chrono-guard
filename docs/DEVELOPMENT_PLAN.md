@@ -154,3 +154,9 @@
 - [ ] Post-collaboration review & reputation scoring (Section 12)
 - [ ] Verified skill endorsements originating from completed projects
 - [ ] Admin moderation console for reporting and dispute intervention
+
+## Current implementation status (2026-11-17)
+
+The milestone list above is the original baseline. Since it was written, application review, agreement versions, member-only workspaces, organization records, handovers, participant reviews, review reports, and a basic administrator report queue have been implemented in the repository. The app build succeeds, but these milestones are not complete under the product definition of done until the new Supabase migrations are applied and permission behavior is validated with real accounts.
+
+Remaining work is final responsive/accessibility review, applying migrations `004`–`006` to a configured Supabase development project, validating permissions and workflows with separate accounts, and deployment. Applications, agreements, workspaces, scope-change/dispute requests, organizations, reviews, endorsements, in-app notification preferences, administrator metrics, and account status moderation now have code paths in the repository. See `product_spec.md` and keep this status current as validation proceeds.

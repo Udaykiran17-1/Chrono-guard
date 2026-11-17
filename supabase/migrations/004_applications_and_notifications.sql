@@ -108,7 +108,8 @@ BEGIN
   -- 1. Fetch application
   SELECT * INTO v_app
   FROM public.applications
-  WHERE id = p_application_id;
+  WHERE id = p_application_id
+  FOR UPDATE;
 
   IF NOT FOUND THEN
     RAISE EXCEPTION 'Application with ID % was not found', p_application_id;
@@ -125,11 +126,19 @@ BEGIN
   END IF;
 
   -- 3. Verify that caller is the project creator (if running in auth context)
-  IF auth.uid() IS NOT NULL AND v_project.creator_id != auth.uid() THEN
+  IF auth.uid() IS NULL OR NOT public.is_account_active(auth.uid()) OR v_project.creator_id != auth.uid() THEN
     RAISE EXCEPTION 'Only the project creator can accept applications';
   END IF;
 
+  IF v_app.status NOT IN ('submitted', 'under_review', 'shortlisted') THEN
+    RAISE EXCEPTION 'Only active applications can be accepted';
+  END IF;
+
   -- 4. Validate capacity (prevent over-acceptance)
+  IF v_project.status IN ('completed', 'cancelled', 'closed') THEN
+    RAISE EXCEPTION 'Applications cannot be accepted for a closed project';
+  END IF;
+
   IF v_project.positions_filled >= v_project.positions_total THEN
     RAISE EXCEPTION 'All positions for this project have already been filled (%/%)', v_project.positions_filled, v_project.positions_total;
   END IF;
@@ -140,6 +149,7 @@ BEGIN
   END IF;
 
   -- 6. Update application status
+  PERFORM set_config('skillbridge.accepting_application', 'true', true);
   UPDATE public.applications
   SET status = 'accepted',
       updated_at = now()
@@ -217,10 +227,12 @@ CREATE POLICY "Applicants can submit applications for open projects"
   TO authenticated
   WITH CHECK (
     applicant_id = auth.uid()
+    AND status = 'submitted'
     AND EXISTS (
       SELECT 1 FROM public.projects p
       WHERE p.id = applications.project_id
-        AND p.status IN ('open', 'reviewing')
+        AND p.status IN ('open', 'reviewing', 'in_progress')
+        AND p.positions_filled < p.positions_total
         AND p.creator_id != auth.uid()
     )
   );
@@ -257,6 +269,14 @@ CREATE POLICY "Project creators can update application status"
 -- 5.2 Project Members RLS
 ALTER TABLE public.project_members ENABLE ROW LEVEL SECURITY;
 
+CREATE OR REPLACE FUNCTION public.is_project_member(p_project_id UUID, p_user_id UUID)
+RETURNS BOOLEAN AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.project_members
+    WHERE project_id = p_project_id AND user_id = p_user_id
+  );
+$$ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public;
+
 DROP POLICY IF EXISTS "Project members can view project membership" ON public.project_members;
 CREATE POLICY "Project members can view project membership"
   ON public.project_members
@@ -268,10 +288,7 @@ CREATE POLICY "Project members can view project membership"
       SELECT 1 FROM public.projects p
       WHERE p.id = project_members.project_id AND p.creator_id = auth.uid()
     )
-    OR EXISTS (
-      SELECT 1 FROM public.project_members pm
-      WHERE pm.project_id = project_members.project_id AND pm.user_id = auth.uid()
-    )
+    OR public.is_project_member(project_members.project_id, auth.uid())
   );
 
 DROP POLICY IF EXISTS "Project creators can manage project members" ON public.project_members;
@@ -309,4 +326,100 @@ CREATE POLICY "Authenticated users can create notifications"
   ON public.notifications
   FOR INSERT
   TO authenticated
-  WITH CHECK (true);
+  WITH CHECK (user_id = auth.uid());
+
+-- Notifications about another user's application are written by these trusted database triggers.
+CREATE OR REPLACE FUNCTION public.notify_application_event()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_title TEXT;
+BEGIN
+  SELECT title INTO v_title FROM public.projects WHERE id = NEW.project_id;
+
+  IF TG_OP = 'INSERT' THEN
+    INSERT INTO public.notifications (user_id, type, title, message, link_url)
+    SELECT creator_id, 'new_application', 'New project application',
+      'A candidate has submitted an application for "' || v_title || '".',
+      '/projects/' || NEW.project_id || '/applicants'
+    FROM public.projects WHERE id = NEW.project_id;
+  ELSIF NEW.status IS DISTINCT FROM OLD.status AND NEW.status <> 'accepted' THEN
+    INSERT INTO public.notifications (user_id, type, title, message, link_url)
+    VALUES (
+      NEW.applicant_id,
+      'application_' || NEW.status,
+      'Application status updated',
+      'Your application for "' || v_title || '" is now ' || replace(NEW.status, '_', ' ') || '.',
+      '/projects/' || NEW.project_id
+    );
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+DROP TRIGGER IF EXISTS trg_notify_application_insert ON public.applications;
+CREATE TRIGGER trg_notify_application_insert
+  AFTER INSERT ON public.applications
+  FOR EACH ROW EXECUTE FUNCTION public.notify_application_event();
+
+DROP TRIGGER IF EXISTS trg_notify_application_status ON public.applications;
+CREATE TRIGGER trg_notify_application_status
+  AFTER UPDATE OF status ON public.applications
+  FOR EACH ROW EXECUTE FUNCTION public.notify_application_event();
+
+-- Prevent users from changing application content or identity while changing status.
+CREATE OR REPLACE FUNCTION public.enforce_application_update_scope()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.project_id IS DISTINCT FROM OLD.project_id
+    OR NEW.applicant_id IS DISTINCT FROM OLD.applicant_id
+    OR NEW.introduction IS DISTINCT FROM OLD.introduction
+    OR NEW.relevant_experience IS DISTINCT FROM OLD.relevant_experience
+    OR NEW.portfolio_links IS DISTINCT FROM OLD.portfolio_links
+    OR NEW.estimated_days IS DISTINCT FROM OLD.estimated_days
+    OR NEW.proposed_price IS DISTINCT FROM OLD.proposed_price
+    OR NEW.comments IS DISTINCT FROM OLD.comments
+    OR NEW.created_at IS DISTINCT FROM OLD.created_at THEN
+    RAISE EXCEPTION 'Application details cannot be edited after submission';
+  END IF;
+
+  IF auth.uid() = OLD.applicant_id AND NEW.status <> 'withdrawn' THEN
+    RAISE EXCEPTION 'Applicants can only withdraw their own application';
+  END IF;
+
+  IF auth.uid() = OLD.applicant_id AND OLD.status NOT IN ('submitted', 'under_review', 'shortlisted') THEN
+    RAISE EXCEPTION 'This application can no longer be withdrawn';
+  END IF;
+
+  IF NEW.status = 'accepted' AND OLD.status <> 'accepted'
+    AND current_setting('skillbridge.accepting_application', true) IS DISTINCT FROM 'true' THEN
+    RAISE EXCEPTION 'Applications must be accepted through the capacity-safe acceptance function';
+  END IF;
+
+  IF NEW.status NOT IN ('submitted', 'under_review', 'shortlisted', 'accepted', 'rejected', 'withdrawn') THEN
+    RAISE EXCEPTION 'Invalid application status';
+  END IF;
+
+  IF auth.uid() <> OLD.applicant_id AND NEW.status IS DISTINCT FROM OLD.status
+    AND NEW.status <> 'accepted'
+    AND NOT (
+      (OLD.status = 'submitted' AND NEW.status IN ('under_review', 'shortlisted', 'rejected'))
+      OR (OLD.status = 'under_review' AND NEW.status IN ('shortlisted', 'rejected'))
+      OR (OLD.status = 'shortlisted' AND NEW.status IN ('under_review', 'rejected'))
+    ) THEN
+    RAISE EXCEPTION 'Invalid application status transition';
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_enforce_application_update_scope ON public.applications;
+CREATE TRIGGER trg_enforce_application_update_scope
+  BEFORE UPDATE ON public.applications
+  FOR EACH ROW EXECUTE FUNCTION public.enforce_application_update_scope();
+
+REVOKE ALL ON FUNCTION public.accept_project_application(UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.accept_project_application(UUID) TO authenticated;
+REVOKE ALL ON FUNCTION public.is_project_member(UUID, UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.is_project_member(UUID, UUID) TO authenticated;

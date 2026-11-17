@@ -1,24 +1,28 @@
+import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { Navbar, Footer, ProtectedRoute } from './components/layout';
-import LandingPage from './pages/public/LandingPage';
-import LoginPage from './pages/public/LoginPage';
-import RegisterPage from './pages/public/RegisterPage';
-import ForgotPasswordPage from './pages/public/ForgotPasswordPage';
-import VerifyEmailPage from './pages/public/VerifyEmailPage';
-import DashboardOverview from './pages/dashboard/DashboardOverview';
-import ComponentShowcase from './pages/ComponentShowcase';
+import { Spinner } from './components/ui';
 
-// Milestone 2 Pages
-import OnboardingPage from './pages/talent/OnboardingPage';
-import StudentProfilePage from './pages/talent/StudentProfilePage';
-import EditProfilePage from './pages/talent/EditProfilePage';
-
-// Milestone 3 Pages
-import TalentDirectoryPage from './pages/talent/TalentDirectoryPage';
-import ProjectDiscoveryPage from './pages/projects/ProjectDiscoveryPage';
-import CreateProjectPage from './pages/projects/CreateProjectPage';
-import ProjectDetailPage from './pages/projects/ProjectDetailPage';
+const LandingPage = lazy(() => import('./pages/public/LandingPage'));
+const LoginPage = lazy(() => import('./pages/public/LoginPage'));
+const RegisterPage = lazy(() => import('./pages/public/RegisterPage'));
+const ForgotPasswordPage = lazy(() => import('./pages/public/ForgotPasswordPage'));
+const VerifyEmailPage = lazy(() => import('./pages/public/VerifyEmailPage'));
+const DashboardOverview = lazy(() => import('./pages/dashboard/DashboardOverview'));
+const AdminReportsPage = lazy(() => import('./pages/dashboard/AdminReportsPage'));
+const NotificationSettingsPage = lazy(() => import('./pages/dashboard/NotificationSettingsPage'));
+const ComponentShowcase = lazy(() => import('./pages/ComponentShowcase'));
+const OnboardingPage = lazy(() => import('./pages/talent/OnboardingPage'));
+const StudentProfilePage = lazy(() => import('./pages/talent/StudentProfilePage'));
+const EditProfilePage = lazy(() => import('./pages/talent/EditProfilePage'));
+const TalentDirectoryPage = lazy(() => import('./pages/talent/TalentDirectoryPage'));
+const ProjectDiscoveryPage = lazy(() => import('./pages/projects/ProjectDiscoveryPage'));
+const CreateProjectPage = lazy(() => import('./pages/projects/CreateProjectPage'));
+const ProjectDetailPage = lazy(() => import('./pages/projects/ProjectDetailPage'));
+const ProjectApplicantsPage = lazy(() => import('./pages/projects/ProjectApplicantsPage'));
+const ProjectWorkspacePage = lazy(() => import('./pages/projects/ProjectWorkspacePage'));
+const OrganizationsPage = lazy(() => import('./pages/organizations/OrganizationsPage'));
 
 export default function App() {
   return (
@@ -26,6 +30,7 @@ export default function App() {
       <div className="flex min-h-screen flex-col bg-canvas text-slate-800">
         <Navbar />
         <div className="flex-1">
+          <Suspense fallback={<div className="flex min-h-[50vh] items-center justify-center" role="status"><Spinner size="lg" /></div>}>
           <Routes>
             {/* Landing Page on root as required */}
             <Route path="/" element={<LandingPage />} />
@@ -84,6 +89,22 @@ export default function App() {
             />
             <Route path="/projects/:id" element={<ProjectDetailPage />} />
             <Route
+              path="/projects/:id/applicants"
+              element={
+                <ProtectedRoute>
+                  <ProjectApplicantsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/projects/:id/workspace"
+              element={
+                <ProtectedRoute>
+                  <ProjectWorkspacePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/projects/:id/edit"
               element={
                 <ProtectedRoute>
@@ -101,6 +122,30 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/settings/notifications"
+              element={
+                <ProtectedRoute>
+                  <NotificationSettingsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/reports"
+              element={
+                <ProtectedRoute>
+                  <AdminReportsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/organizations"
+              element={
+                <ProtectedRoute>
+                  <OrganizationsPage />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Reusable UI Components Showcase (retained for inspection) */}
             <Route path="/showcase" element={<ComponentShowcase />} />
@@ -108,6 +153,7 @@ export default function App() {
             {/* Fallback to Home */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+          </Suspense>
         </div>
         <Footer />
       </div>

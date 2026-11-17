@@ -501,6 +501,20 @@ export async function getMyCreatedProjects(userId) {
   return allProjects.filter((p) => p.creator_id === userId);
 }
 
+export async function getMyActiveProjects(userId) {
+  if (!userId) return [];
+  if (isSupabaseConfigured()) {
+    const { data, error } = await supabase.from('project_members')
+      .select('project:projects!project_id(*)').eq('user_id', userId);
+    if (error) throw error;
+    return (data || []).map((row) => row.project).filter((project) => project && project.status === 'in_progress');
+  }
+  const memberRows = JSON.parse(localStorage.getItem('skillbridge_mock_project_members') || '[]');
+  const ids = [...new Set(memberRows.filter((row) => row.user_id === userId).map((row) => row.project_id))];
+  const projects = await Promise.all(ids.map((projectId) => getProjectById(projectId)));
+  return projects.filter((project) => project?.status === 'in_progress');
+}
+
 /**
  * Toggle bookmark / save for a project
  */

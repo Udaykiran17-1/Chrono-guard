@@ -2,6 +2,25 @@
 
 All notable changes to SkillBridge will be documented in this file.
 
+## [Unreleased] — Collaboration and organization implementation
+
+### Added
+- Connected the project applicant review screen and added applicant tracking and recent notifications to the student dashboard.
+- Added member-only project workspaces with immutable versioned agreements, mutual acceptance, milestones, and progress updates.
+- Added organization profiles, permissioned committee membership, freelancer records, and handover preparation/acceptance.
+- Added post-completion participant reviews, review reporting, and an administrator report queue.
+- Added participant skill endorsements tied to completed project skills and per-user in-app notification preferences.
+- Added database migrations `004`–`006` and architecture, API, and testing-status documentation.
+
+### Security
+- Required authenticated project creators for application acceptance and routed acceptance through the capacity-safe database function.
+- Restricted cross-user notifications to database-generated events and added application-field immutability checks.
+- Added project-member and organization-permission policies for collaboration data.
+
+### Validation status
+- Production build passes. Lint completes with existing warnings.
+- New Supabase migrations are not yet applied or integration-tested; this work is not production-ready.
+
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---

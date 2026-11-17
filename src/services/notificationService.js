@@ -2,6 +2,7 @@ import { supabase } from '../lib/supabase';
 import { isSupabaseConfigured } from './authService';
 
 const MOCK_NOTIFICATIONS_KEY = 'skillbridge_mock_notifications';
+const MOCK_NOTIFICATION_PREFERENCES_KEY = 'skillbridge_mock_notification_preferences';
 
 // Initial mock notifications for demo testing
 const DEFAULT_MOCK_NOTIFICATIONS = [
@@ -151,14 +152,8 @@ export async function createNotification({ userId, type, title, message, linkUrl
   };
 
   if (isSupabaseConfigured()) {
-    const { error } = await supabase.from('notifications').insert({
-      user_id: userId,
-      type: type || 'system',
-      title,
-      message: message || '',
-      link_url: linkUrl || null,
-    });
-    if (error) console.error('Error creating notification in Supabase:', error);
+    // Cross-user notifications are created by database triggers. The client must
+    // not be allowed to write notifications to another user's inbox.
     return newNotif;
   }
 
@@ -167,4 +162,30 @@ export async function createNotification({ userId, type, title, message, linkUrl
   allNotifs.unshift(newNotif);
   localStorage.setItem(MOCK_NOTIFICATIONS_KEY, JSON.stringify(allNotifs));
   return newNotif;
+}
+
+export async function getNotificationPreferences(userId) {
+  const defaults = { in_app_enabled: true, email_enabled: false };
+  if (!userId) return defaults;
+  if (isSupabaseConfigured()) {
+    const { data, error } = await supabase.from('notification_preferences').select('in_app_enabled, email_enabled').eq('user_id', userId).maybeSingle();
+    if (error) throw error;
+    return { ...defaults, ...(data || {}) };
+  }
+  const saved = JSON.parse(localStorage.getItem(MOCK_NOTIFICATION_PREFERENCES_KEY) || '{}');
+  return { ...defaults, ...(saved[userId] || {}) };
+}
+
+export async function updateNotificationPreferences(userId, preferences) {
+  if (!userId) throw new Error('A signed-in user is required.');
+  const safePreferences = { in_app_enabled: Boolean(preferences.in_app_enabled), email_enabled: Boolean(preferences.email_enabled) };
+  if (isSupabaseConfigured()) {
+    const { data, error } = await supabase.from('notification_preferences').upsert({ user_id: userId, ...safePreferences, updated_at: new Date().toISOString() }).select('in_app_enabled, email_enabled').single();
+    if (error) throw error;
+    return data;
+  }
+  const all = JSON.parse(localStorage.getItem(MOCK_NOTIFICATION_PREFERENCES_KEY) || '{}');
+  all[userId] = safePreferences;
+  localStorage.setItem(MOCK_NOTIFICATION_PREFERENCES_KEY, JSON.stringify(all));
+  return safePreferences;
 }

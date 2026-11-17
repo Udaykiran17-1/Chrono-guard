@@ -188,7 +188,7 @@ export default function ProjectDetailPage() {
     budgetDisplay = 'Volunteer Opportunity';
   }
 
-  const isClosed = project.status === 'closed' || project.status === 'completed' || project.status === 'cancelled';
+  const isClosed = project.status === 'closed' || project.status === 'completed' || project.status === 'cancelled' || (project.positions_total > 0 && project.positions_filled >= project.positions_total);
 
   return (
     <div className="bg-canvas min-h-screen py-8 px-4 sm:px-6 lg:px-8">
@@ -495,6 +495,12 @@ export default function ProjectDetailPage() {
                       </Button>
                     </Link>
 
+                    {project.positions_filled > 0 && project.status !== 'completed' && project.status !== 'cancelled' && (
+                      <Link to={`/projects/${project.id}/workspace`} className="block w-full">
+                        <Button variant="outline" size="sm" className="w-full">Open Project Workspace</Button>
+                      </Link>
+                    )}
+
                     <Link to={`/projects/${project.id}/edit`} className="block w-full">
                       <Button variant="outline" size="sm" className="w-full flex items-center justify-center gap-1.5">
                         <Edit3 className="h-4 w-4" />
@@ -560,6 +566,11 @@ export default function ProjectDetailPage() {
                               Track in My Applications →
                             </Button>
                           </Link>
+                          {userApplication.status === 'accepted' && (
+                            <Link to={`/projects/${project.id}/workspace`} className="block w-full">
+                              <Button variant="primary" size="sm" className="w-full">Open Project Workspace</Button>
+                            </Link>
+                          )}
                         </div>
                       ) : (
                         <Button

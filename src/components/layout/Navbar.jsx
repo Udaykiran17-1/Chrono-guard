@@ -16,6 +16,7 @@ import {
   User,
   Edit3,
   Plus,
+  Bell,
 } from 'lucide-react';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
@@ -142,6 +143,34 @@ export default function Navbar() {
                 </Link>
 
                 <NavLink
+                  to="/organizations"
+                  className={({ isActive }) =>
+                    [
+                      'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors',
+                      isActive ? 'bg-indigo-50 text-brand-indigo' : 'text-slate-600 hover:bg-slate-100',
+                    ].join(' ')
+                  }
+                  title="Organization workspace"
+                >
+                  <Users className="h-4 w-4" />
+                  <span>Organizations</span>
+                </NavLink>
+
+                {role === 'admin' && <NavLink
+                  to="/admin/reports"
+                  className={({ isActive }) =>
+                    [
+                      'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors',
+                      isActive ? 'bg-amber-50 text-amber-800' : 'text-slate-600 hover:bg-slate-100',
+                    ].join(' ')
+                  }
+                  title="Content reports"
+                >
+                  <Shield className="h-4 w-4" />
+                  <span>Reports</span>
+                </NavLink>}
+
+                <NavLink
                   to="/dashboard"
                   className={({ isActive }) =>
                     [
@@ -153,6 +182,15 @@ export default function Navbar() {
                 >
                   <LayoutDashboard className="h-4 w-4" />
                   <span>Dashboard</span>
+                </NavLink>
+
+                <NavLink
+                  to="/settings/notifications"
+                  className={({ isActive }) => `rounded-lg p-2 ${isActive ? 'bg-indigo-50 text-brand-indigo' : 'text-slate-500 hover:bg-slate-100'}`}
+                  title="Notification preferences"
+                  aria-label="Notification preferences"
+                >
+                  <Bell className="h-4 w-4" />
                 </NavLink>
 
                 <NavLink
@@ -279,6 +317,25 @@ export default function Navbar() {
                         <span>Post a Project</span>
                       </Link>
                     </li>
+
+                    <li>
+                      <NavLink to="/organizations" onClick={closeMobile} className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                        <Users className="h-5 w-5" aria-hidden="true" />
+                        Organization workspace
+                      </NavLink>
+                    </li>
+                    <li>
+                      <NavLink to="/settings/notifications" onClick={closeMobile} className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                        <Bell className="h-5 w-5" aria-hidden="true" />
+                        Notification settings
+                      </NavLink>
+                    </li>
+                    {role === 'admin' && <li>
+                      <NavLink to="/admin/reports" onClick={closeMobile} className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                        <Shield className="h-5 w-5" aria-hidden="true" />
+                        Content reports
+                      </NavLink>
+                    </li>}
 
                     <li>
                       <NavLink

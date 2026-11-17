@@ -229,3 +229,16 @@ Creator / organizer bookmarks for student talent discovered in the directory.
    - Automatically transitions project to `closed` when `positions_filled >= positions_total`.
 4. **`trg_*_updated_at`**:
    - Automatically maintains `updated_at = now()` across `universities`, `departments`, `profiles`, `portfolio_items`, and `projects`.
+
+## 4. Collaboration, Organizations and Trust & Safety (Migrations 004–006)
+
+- `applications`, `project_members`, and `notifications` support applications, capacity-safe acceptance, and in-app events.
+- `project_agreements` identify the client and freelancer; `agreement_versions` hold versioned JSON terms and both parties' acceptance timestamps.
+- `project_milestones` and `project_updates` track work after the latest agreement version has been accepted.
+- `project_change_requests` records member-to-member disputes and scope changes; accepting a scope change appends a new agreement version.
+- `organizations`, `organization_members`, `organization_freelancers`, and `organization_handovers` preserve committee continuity and private collaboration records.
+- `project_reviews` and `project_skill_endorsements` store participant feedback tied to completed projects. `content_reports` and `moderation_actions` support reporting and administrator review.
+- `notification_preferences` stores each user's in-app delivery choice; email delivery remains disabled until an email provider is configured.
+- `projects.organization_id` associates projects with organizations and requires organization-management permission when set.
+
+Apply migrations `001` through `006` in order. Migrations `004`–`006` have not been applied to a configured Supabase database in this workspace; validate them on a development project before production use.

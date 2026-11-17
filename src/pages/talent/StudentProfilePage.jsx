@@ -27,6 +27,7 @@ import { Button, Card, CardHeader, CardBody, CardFooter, Badge, Spinner, GithubI
 import PageContainer from '../../components/layout/PageContainer';
 import { useAuth } from '../../context/AuthContext';
 import { getProfileById, updateAvailability } from '../../services/profileService';
+import { getReviewsForProfile, submitContentReport, getSkillEndorsementsForProfile } from '../../services/workspaceService';
 
 const AVAILABILITY_OPTIONS = [
   { value: 'available', label: 'Available', variant: 'teal' },
@@ -46,8 +47,24 @@ export default function StudentProfilePage() {
   const [profileData, setProfileData] = useState(null);
   const [userSkills, setUserSkills] = useState([]);
   const [portfolioItems, setPortfolioItems] = useState([]);
+  const [collaborationReviews, setCollaborationReviews] = useState([]);
+  const [skillEndorsements, setSkillEndorsements] = useState([]);
   const [error, setError] = useState('');
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [reportedReviews, setReportedReviews] = useState(() => new Set());
+  const [reportError, setReportError] = useState('');
+
+  const handleReportReview = async (reviewId, reason) => {
+    try {
+      await submitContentReport(user.id, 'review', reviewId, reason);
+      setReportedReviews((current) => new Set([...current, reviewId]));
+      setReportError('');
+      return true;
+    } catch (err) {
+      setReportError(err.message || 'Could not submit this report.');
+      return false;
+    }
+  };
 
   useEffect(() => {
     async function loadData() {
@@ -57,10 +74,12 @@ export default function StudentProfilePage() {
       }
       setLoading(true);
       try {
-        const res = await getProfileById(targetUserId);
+        const [res, reviews, endorsements] = await Promise.all([getProfileById(targetUserId), getReviewsForProfile(targetUserId), getSkillEndorsementsForProfile(targetUserId)]);
         setProfileData(res.profile);
         setUserSkills(res.user_skills || []);
         setPortfolioItems(res.portfolio_items || []);
+        setCollaborationReviews(reviews || []);
+        setSkillEndorsements(endorsements || []);
       } catch (err) {
         setError(err.message || 'Failed to load profile.');
       } finally {
@@ -456,6 +475,8 @@ export default function StudentProfilePage() {
               </CardBody>
             </Card>
 
+            {skillEndorsements.length > 0 && <Card><CardHeader><h2 className="text-base font-bold text-slate-900">Project-based skill endorsements</h2><p className="text-xs text-slate-500">Participant feedback from completed SkillBridge projects.</p></CardHeader><CardBody className="space-y-2">{skillEndorsements.map((endorsement) => <div key={endorsement.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-card-border p-3"><div><p className="text-sm font-semibold">{endorsement.skill?.name || 'Project skill'}</p><p className="text-xs text-slate-500">Endorsed by {endorsement.endorser?.full_name || 'a collaborator'} · {endorsement.project?.title || 'Completed project'}</p></div><Badge variant="indigo">Project-based</Badge></div>)}<p className="text-[11px] text-slate-500">Endorsements are participant-submitted and do not independently certify expertise.</p></CardBody></Card>}
+
             {/* Distinct Verified SkillBridge Collaborations Section (Section 12.2) */}
             <Card className="border border-card-border bg-white">
               <CardHeader>
@@ -463,26 +484,36 @@ export default function StudentProfilePage() {
                   <div className="flex items-center gap-2">
                     <Award className="h-5 w-5 text-brand-indigo" />
                     <h2 className="text-base font-bold text-slate-900">
-                      Verified SkillBridge Collaborations
+                      Completed SkillBridge Collaborations
                     </h2>
                   </div>
-                  <Badge variant="teal" icon={Shield}>
-                    Milestone-Verified
+                  <Badge variant="indigo" icon={Shield}>
+                    Participant feedback
                   </Badge>
                 </div>
               </CardHeader>
               <CardBody className="p-6">
-                <div className="rounded-lg bg-slate-50 p-4 border border-card-border text-center">
+                {collaborationReviews.length > 0 ? <div className="space-y-3">
+                  <p className="text-xs text-slate-500">Reviews come from project participants. SkillBridge does not independently verify the work described.</p>
+                  {collaborationReviews.map((review) => <article key={review.id} className="rounded-lg border border-card-border p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-sm font-semibold text-slate-900">{review.project?.title || 'Completed project'}</h3><span className="text-sm font-bold text-amber-700">{review.overall}/5</span></div>
+                    <p className="mt-1 text-xs text-slate-500">From {review.reviewer?.full_name || 'a project participant'} · {new Date(review.created_at).toLocaleDateString()}</p>
+                    <p className="mt-3 whitespace-pre-wrap text-sm text-slate-700">{review.feedback}</p>
+                    <p className="mt-2 text-xs text-slate-500">Communication {review.communication}/5 · Reliability {review.reliability}/5 · Quality {review.quality}/5 · Deadlines {review.deadlines}/5</p>
+                    {user?.id && <details className="mt-3"><summary className="cursor-pointer text-xs font-medium text-slate-500">Report this review</summary>{reportedReviews.has(review.id) ? <p className="mt-2 text-xs text-teal-700">Report submitted for moderator review.</p> : <ReviewReportForm onSubmit={(reason) => handleReportReview(review.id, reason)} />}</details>}
+                  </article>)}
+                  {reportError && <p role="alert" className="text-xs text-red-700">{reportError}</p>}
+                </div> : <div className="rounded-lg bg-slate-50 p-4 border border-card-border text-center">
                   <div className="mx-auto w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-brand-indigo mb-2">
                     <CheckCircle2 className="h-5 w-5" />
                   </div>
                   <h3 className="text-sm font-semibold text-slate-800">
-                    No verified platform collaborations yet
+                    No completed collaborations with reviews yet
                   </h3>
                   <p className="text-xs text-slate-500 max-w-md mx-auto mt-1 leading-relaxed">
-                    Per SkillBridge specifications (Section 12.2), completed campus projects with verified client reviews appear here independently from self-reported portfolio entries once agreements and milestones are completed.
+                    Reviews appear here after project participants submit feedback on a completed collaboration. These records are separate from self-reported portfolio work.
                   </p>
-                </div>
+                </div>}
               </CardBody>
             </Card>
           </div>
@@ -607,15 +638,26 @@ export default function StudentProfilePage() {
             <div className="rounded-card border border-slate-200 bg-white p-4 text-xs text-slate-500 leading-relaxed space-y-1.5 shadow-card">
               <div className="flex items-center gap-1.5 font-semibold text-slate-700">
                 <Info className="h-4 w-4 text-brand-cobalt" />
-                <span>Verified Campus Network</span>
+                <span>Campus community</span>
               </div>
               <p>
-                Student accounts are verified against active campus rosters. All collaboration agreements maintain version-controlled deliverable records.
+                Availability and portfolio skills are self-reported. Collaboration agreements and participant feedback are kept separate from profile claims.
               </p>
             </div>
           </div>
         </div>
       </PageContainer>
     </div>
+  );
+}
+
+function ReviewReportForm({ onSubmit }) {
+  const [reason, setReason] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+  return submitted ? <p className="mt-2 text-xs text-teal-700">Report submitted for moderator review.</p> : (
+    <form className="mt-2 space-y-2" onSubmit={async (event) => { event.preventDefault(); if (await onSubmit(reason)) setSubmitted(true); }}>
+      <textarea required minLength="5" maxLength="1000" rows="2" value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Tell us why this review should be checked." className="w-full rounded border border-card-border px-2 py-1.5 text-xs" />
+      <button type="submit" className="rounded bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200">Send report</button>
+    </form>
   );
 }

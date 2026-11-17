@@ -21,6 +21,7 @@ import {
   Bookmark,
   ExternalLink,
   Search,
+  Bell,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Button, Card, CardHeader, CardBody, CardFooter, Badge, Spinner } from '../../components/ui';
@@ -28,9 +29,12 @@ import PageContainer from '../../components/layout/PageContainer';
 import {
   getRecommendedProjects,
   getMyCreatedProjects,
+  getMyActiveProjects,
   getSavedProjectIds,
 } from '../../services/projectService';
 import { getSavedFreelancerIds } from '../../services/talentService';
+import { getMyApplications } from '../../services/applicationService';
+import { getNotifications, markAsRead, markAllAsRead } from '../../services/notificationService';
 
 export default function DashboardOverview() {
   const { user, profile, logout } = useAuth();
@@ -40,6 +44,9 @@ export default function DashboardOverview() {
   const [myCreatedProjects, setMyCreatedProjects] = useState([]);
   const [savedProjectCount, setSavedProjectCount] = useState(0);
   const [savedFreelancerCount, setSavedFreelancerCount] = useState(0);
+  const [myApplications, setMyApplications] = useState([]);
+  const [activeProjects, setActiveProjects] = useState([]);
+  const [notifications, setNotifications] = useState([]);
 
   const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email || 'SkillBridge Member';
   const displayEmail = profile?.email || user?.email;
@@ -58,11 +65,14 @@ export default function DashboardOverview() {
       if (!user?.id) return;
       try {
         setLoadingMarketplace(true);
-        const [recs, myProjs, savedProjIds, savedFreeIds] = await Promise.all([
+        const [recs, myProjs, savedProjIds, savedFreeIds, applications, userNotifications, collaborations] = await Promise.all([
           getRecommendedProjects(user.id),
           getMyCreatedProjects(user.id),
           getSavedProjectIds(user.id),
           getSavedFreelancerIds(user.id),
+          getMyApplications(user.id),
+          getNotifications(user.id),
+          getMyActiveProjects(user.id),
         ]);
 
         if (isMounted) {
@@ -70,6 +80,9 @@ export default function DashboardOverview() {
           setMyCreatedProjects(myProjs || []);
           setSavedProjectCount(savedProjIds?.length || 0);
           setSavedFreelancerCount(savedFreeIds?.length || 0);
+          setMyApplications(applications || []);
+          setNotifications(userNotifications || []);
+          setActiveProjects(collaborations || []);
         }
       } catch (err) {
         console.error('Error fetching dashboard marketplace data:', err);
@@ -356,6 +369,84 @@ export default function DashboardOverview() {
                         </Link>
                       </div>
                     </div>
+                  ))}
+                </div>
+              )}
+            </CardBody>
+          </Card>
+
+          {/* Applications submitted by this student */}
+          <Card>
+            <CardHeader><div><h3 className="text-base font-semibold text-slate-900">Active projects</h3><p className="text-xs text-slate-500">Your current project collaborations and workspace shortcuts.</p></div></CardHeader>
+            <CardBody>
+              {loadingMarketplace ? <div className="py-4 flex justify-center"><Spinner size="sm" /></div> : activeProjects.length === 0 ? <p className="text-xs text-slate-500">You do not have any active project collaborations.</p> : <div className="divide-y divide-card-border">{activeProjects.map((project) => <div key={project.id} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"><div><Link to={`/projects/${project.id}`} className="text-sm font-semibold text-slate-900 hover:text-brand-indigo">{project.title}</Link><p className="text-xs text-slate-500">Deadline {project.deadline || 'not set'}</p></div><Link to={`/projects/${project.id}/workspace`}><Button size="sm" variant="outline">Workspace</Button></Link></div>)}</div>}
+            </CardBody>
+          </Card>
+
+          {/* Applications submitted by this student */}
+          <Card>
+            <CardHeader>
+              <div>
+                <h3 className="text-base font-semibold text-slate-900">My Applications</h3>
+                <p className="text-xs text-slate-500">Track proposals you have submitted and their latest status.</p>
+              </div>
+            </CardHeader>
+            <CardBody>
+              {loadingMarketplace ? (
+                <div className="py-5 flex justify-center"><Spinner size="sm" /></div>
+              ) : myApplications.length === 0 ? (
+                <p className="text-xs text-slate-500">You have not applied to any projects yet.</p>
+              ) : (
+                <div className="divide-y divide-card-border">
+                  {myApplications.slice(0, 5).map((application) => (
+                    <div key={application.id} className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <Link to={`/projects/${application.project_id}`} className="text-sm font-semibold text-slate-900 hover:text-brand-indigo">
+                          {application.project?.title || 'Project application'}
+                        </Link>
+                        <p className="text-xs text-slate-500">Applied {new Date(application.created_at).toLocaleDateString()}</p>
+                      </div>
+                      <Badge variant={application.status === 'accepted' ? 'teal' : application.status === 'rejected' ? 'red' : 'indigo'}>
+                        {application.status.replace('_', ' ').toUpperCase()}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardBody>
+          </Card>
+
+          {/* Recent in-app notifications */}
+          <Card>
+            <CardHeader className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Bell className="h-4 w-4 text-brand-indigo" />Notifications</h3>
+                <p className="text-xs text-slate-500">Updates about applications and project activity.</p>
+              </div>
+              {notifications.some((item) => !item.is_read) && (
+                <Button variant="ghost" size="sm" onClick={async () => {
+                  await markAllAsRead(user.id);
+                  setNotifications((items) => items.map((item) => ({ ...item, is_read: true })));
+                }}>Mark all read</Button>
+              )}
+            </CardHeader>
+            <CardBody>
+              {loadingMarketplace ? <div className="py-4 flex justify-center"><Spinner size="sm" /></div> : notifications.length === 0 ? (
+                <p className="text-xs text-slate-500">You’re all caught up. New project updates will appear here.</p>
+              ) : (
+                <div className="divide-y divide-card-border">
+                  {notifications.slice(0, 5).map((item) => (
+                    <Link key={item.id} to={item.link_url || '/dashboard'} onClick={() => {
+                      if (!item.is_read) {
+                        markAsRead(item.id);
+                        setNotifications((items) => items.map((n) => n.id === item.id ? { ...n, is_read: true } : n));
+                      }
+                    }} className={`block py-3 first:pt-0 last:pb-0 ${item.is_read ? 'text-slate-600' : 'text-slate-900'}`}>
+                      <div className="flex items-start gap-2">
+                        <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${item.is_read ? 'bg-slate-200' : 'bg-brand-indigo'}`} />
+                        <span className="min-w-0"><span className="block text-sm font-semibold">{item.title}</span><span className="block text-xs text-slate-500">{item.message}</span><span className="mt-1 block text-[11px] text-slate-400">{new Date(item.created_at).toLocaleString()}</span></span>
+                      </div>
+                    </Link>
                   ))}
                 </div>
               )}

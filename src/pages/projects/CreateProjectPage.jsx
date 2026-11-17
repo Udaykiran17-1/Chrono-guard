@@ -20,6 +20,7 @@ import PageContainer from '../../components/layout/PageContainer';
 import { useAuth } from '../../context/AuthContext';
 import { createProject, updateProject, getProjectById } from '../../services/projectService';
 import { getAvailableSkills } from '../../services/profileService';
+import { getMyOrganizations } from '../../services/organizationService';
 
 const PROJECT_CATEGORIES = [
   'Web Development',
@@ -53,6 +54,7 @@ export default function CreateProjectPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [availableSkills, setAvailableSkills] = useState([]);
+  const [organizations, setOrganizations] = useState([]);
 
   // Form State matching Product Spec Section 6.2
   const [formData, setFormData] = useState({
@@ -70,6 +72,7 @@ export default function CreateProjectPage() {
     estimated_duration: '',
     positions_total: 1,
     skill_ids: [],
+    organization_id: '',
   });
 
   const [selectedSkillId, setSelectedSkillId] = useState('');
@@ -77,8 +80,9 @@ export default function CreateProjectPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const skills = await getAvailableSkills();
+        const [skills, orgs] = await Promise.all([getAvailableSkills(), getMyOrganizations(user?.id)]);
         setAvailableSkills(skills || []);
+        setOrganizations(orgs || []);
         if (skills?.length > 0) setSelectedSkillId(skills[0].id);
 
         if (isEditing) {
@@ -102,6 +106,7 @@ export default function CreateProjectPage() {
             estimated_duration: existing.estimated_duration || '',
             positions_total: existing.positions_total || 1,
             skill_ids: (existing.skills || []).map((s) => s.id),
+            organization_id: existing.organization_id || '',
           });
         }
       } catch (err) {
@@ -165,6 +170,7 @@ export default function CreateProjectPage() {
     try {
       const payload = {
         ...formData,
+        organization_id: formData.organization_id || null,
         status: publishImmediately ? 'open' : 'draft',
       };
 
@@ -477,6 +483,8 @@ export default function CreateProjectPage() {
               />
             </CardBody>
           </Card>
+
+          {organizations.length > 0 && <Card className="shadow-xs"><CardHeader className="bg-slate-50/70"><h2 className="text-xs font-bold uppercase tracking-wider">Organization project history</h2></CardHeader><CardBody><label className="block text-sm font-medium text-slate-700">Associate with an organization (optional)<select name="organization_id" value={formData.organization_id} onChange={handleChange} className="mt-1 w-full rounded-lg border border-card-border bg-white px-3 py-2 text-sm"><option value="">Personal project</option>{organizations.map((organization) => <option key={organization.id} value={organization.id}>{organization.name}</option>)}</select><span className="mt-1 block text-xs text-slate-500">Only organizations where you have management permission can be selected.</span></label></CardBody></Card>}
 
           {/* Form Action Controls */}
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-card-border">

@@ -34,11 +34,16 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 | `/projects/new` | Structured Project Posting Wizard (Section 6.2) | Protected |
 | `/projects/:id` | Detailed Project Brief & Recommended Freelancers Matching | Public / Auth |
 | `/projects/:id/edit` | Project Brief Editor & Status Controls | Protected |
+| `/projects/:id/applicants` | Creator applicant comparison and review | Protected / Project Creator |
+| `/projects/:id/workspace` | Agreement, milestones, updates and reviews | Protected / Project Members |
+| `/organizations` | Organization directory, members, freelancer records and handovers | Protected |
+| `/admin/reports` | Content report moderation queue | Protected / Platform Admin |
 | `/onboarding` | Guided post-registration setup (Roles, Skills, First Project) | Protected |
 | `/profile/me` | Asymmetric LinkedIn-style profile view for current user | Protected |
 | `/profile/:id` | Student profile view with portfolio & availability | Protected |
 | `/profile/edit` | Tabbed Profile, Bio, Skills & Portfolio project editor | Protected |
 | `/dashboard` | Authenticated session, recommendations & project management console | Protected |
+| `/settings/notifications` | In-app notification preferences | Protected |
 | `/showcase` | Interactive UI component & design system showcase | Public |
 
 ---
@@ -50,7 +55,10 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 │   ├── migrations/
 │   │   ├── 001_foundation_schema.sql       # PostgreSQL foundation & strict RLS
 │   │   ├── 002_profiles_and_portfolios.sql # Profiles extension, portfolios & storage
-│   │   └── 003_marketplace_and_projects.sql # Projects, state machine trigger & bookmarks
+│   │   ├── 003_marketplace_and_projects.sql # Projects, state machine trigger & bookmarks
+│   │   ├── 004_applications_and_notifications.sql # Applications, memberships & notifications
+│   │   ├── 005_project_workspaces.sql      # Agreements, milestones & project updates
+│   │   └── 006_organizations_reviews_reports.sql # Organizations, reviews & moderation
 │   └── seed.sql                            # Default university, departments & skills
 ├── src/
 │   ├── components/
@@ -92,6 +100,9 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 ## 📚 Documentation
 - [Database Schema & Triggers](./docs/DATABASE.md)
 - [Security & RLS Policies](./docs/SECURITY.md)
+- [Architecture](./docs/ARCHITECTURE.md)
+- [Service & Route Reference](./docs/API_DOCUMENTATION.md)
+- [Testing and Validation Status](./docs/TESTING.md)
 - [Design System](./docs/DESIGN_SYSTEM.md)
 - [Development Plan](./docs/DEVELOPMENT_PLAN.md)
 - [Changelog](./docs/CHANGELOG.md)
