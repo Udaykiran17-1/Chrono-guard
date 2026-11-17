@@ -4,7 +4,6 @@ import {
   Home,
   Users,
   Briefcase,
-  HelpCircle,
   LogIn,
   Search,
   Menu,
@@ -12,21 +11,20 @@ import {
   LayoutDashboard,
   LogOut,
   Shield,
-  Layers,
   User,
   Edit3,
   Plus,
   Bell,
 } from 'lucide-react';
 import Button from '../ui/Button';
-import Badge from '../ui/Badge';
 import { useAuth } from '../../context/AuthContext';
 
 const navLinks = [
   { to: '/', label: 'Home', icon: Home },
   { to: '/talent', label: 'Explore Talent', icon: Users },
   { to: '/projects', label: 'Find Projects', icon: Briefcase },
-  { to: '/#how-it-works', label: 'How It Works', icon: HelpCircle },
+  { to: '/organizations', label: 'Organizations', icon: Users },
+  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
 ];
 
 export default function Navbar() {
@@ -59,15 +57,15 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className="sticky top-0 z-40 h-nav min-h-nav w-full border-b border-card-border bg-white shadow-nav"
+        className="surface-glass sticky top-0 z-40 h-[64px] min-h-[64px] w-full border-b border-white/80 shadow-nav"
         role="navigation"
         aria-label="Main navigation"
       >
-        <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4 lg:px-8">
+        <div className="mx-auto flex h-full max-w-[1440px] items-center justify-between px-4 lg:px-8">
           {/* Logo */}
           <Link
             to="/"
-            className="flex items-center gap-2 text-xl font-bold text-brand-indigo"
+            className="flex shrink-0 items-center gap-2 text-lg font-extrabold tracking-tight text-brand-indigo"
             onClick={closeMobile}
           >
             <svg
@@ -78,7 +76,7 @@ export default function Navbar() {
               xmlns="http://www.w3.org/2000/svg"
               aria-hidden="true"
             >
-              <rect width="28" height="28" rx="6" fill="#3730A3" />
+              <rect width="28" height="28" rx="8" fill="#4F35C9" />
               <path
                 d="M8 20V12L14 8L20 12V20L14 16L8 20Z"
                 fill="white"
@@ -90,8 +88,8 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop search */}
-          <div className="hidden flex-1 items-center justify-center px-8 md:flex">
-            <div className="relative w-full max-w-md">
+          <div className="hidden flex-1 items-center justify-center px-5 xl:flex">
+            <div className="relative w-full max-w-sm">
               <Search
                 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
                 aria-hidden="true"
@@ -104,24 +102,24 @@ export default function Navbar() {
                     navigate(`/talent?query=${encodeURIComponent(e.target.value.trim())}`);
                   }
                 }}
-                className="w-full rounded-lg border border-card-border bg-slate-50 py-2 pl-9 pr-4 text-sm text-slate-700 placeholder:text-slate-400 focus:border-brand-indigo focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-indigo focus:ring-offset-1"
+                className="w-full rounded-xl border border-card-border bg-white/70 py-2.5 pl-9 pr-4 text-sm text-slate-700 placeholder:text-slate-400 focus:border-brand-indigo focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-indigo/20 focus:ring-offset-0"
                 aria-label="Search"
               />
             </div>
           </div>
 
           {/* Desktop nav links */}
-          <div className="hidden items-center gap-1 lg:flex">
+          <div className="hidden items-center gap-0.5 lg:flex">
             {navLinks.map(({ to, label, icon: Icon }) => (
               <NavLink
                 key={to}
                 to={to}
                 className={({ isActive }) =>
                   [
-                    'flex flex-col items-center gap-0.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
+                    'flex flex-col items-center gap-0.5 rounded-xl px-2.5 py-1.5 text-[11px] font-semibold transition-all duration-200',
                     isActive
-                      ? 'text-brand-indigo font-bold'
-                      : 'text-slate-500 hover:text-slate-900',
+                      ? 'bg-indigo-50 text-brand-indigo shadow-sm'
+                      : 'text-slate-500 hover:bg-white/80 hover:text-brand-indigo',
                   ].join(' ')
                 }
               >
@@ -130,31 +128,17 @@ export default function Navbar() {
               </NavLink>
             ))}
 
-            <div className="mx-2 h-6 w-px bg-slate-200" aria-hidden="true" />
+            <div className="mx-2 h-7 w-px bg-indigo-100" aria-hidden="true" />
 
             {/* Authenticated State vs Guest State */}
             {isAuthenticated ? (
               <div className="flex items-center gap-2">
                 <Link to="/projects/new">
-                  <Button size="sm" variant="outline" className="flex items-center gap-1.5 text-xs py-1.5 px-3">
+                  <Button size="sm" variant="primary" className="flex items-center gap-1.5 text-xs py-1.5 px-3">
                     <Plus className="h-3.5 w-3.5" />
                     <span>Post Project</span>
                   </Button>
                 </Link>
-
-                <NavLink
-                  to="/organizations"
-                  className={({ isActive }) =>
-                    [
-                      'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors',
-                      isActive ? 'bg-indigo-50 text-brand-indigo' : 'text-slate-600 hover:bg-slate-100',
-                    ].join(' ')
-                  }
-                  title="Organization workspace"
-                >
-                  <Users className="h-4 w-4" />
-                  <span>Organizations</span>
-                </NavLink>
 
                 {role === 'admin' && <NavLink
                   to="/admin/reports"
@@ -171,22 +155,8 @@ export default function Navbar() {
                 </NavLink>}
 
                 <NavLink
-                  to="/dashboard"
-                  className={({ isActive }) =>
-                    [
-                      'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors',
-                      isActive ? 'bg-indigo-50 text-brand-indigo' : 'text-slate-600 hover:bg-slate-100',
-                    ].join(' ')
-                  }
-                  title="Dashboard Console"
-                >
-                  <LayoutDashboard className="h-4 w-4" />
-                  <span>Dashboard</span>
-                </NavLink>
-
-                <NavLink
                   to="/settings/notifications"
-                  className={({ isActive }) => `rounded-lg p-2 ${isActive ? 'bg-indigo-50 text-brand-indigo' : 'text-slate-500 hover:bg-slate-100'}`}
+                  className={({ isActive }) => `rounded-xl p-2 transition-colors ${isActive ? 'bg-indigo-50 text-brand-indigo' : 'text-slate-500 hover:bg-white hover:text-brand-indigo'}`}
                   title="Notification preferences"
                   aria-label="Notification preferences"
                 >
@@ -197,8 +167,8 @@ export default function Navbar() {
                   to="/profile/me"
                   className={({ isActive }) =>
                     [
-                      'flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors',
-                      isActive ? 'bg-indigo-50 text-brand-indigo' : 'text-slate-700 hover:bg-slate-50',
+                      'flex items-center gap-2 rounded-xl px-2 py-1.5 text-xs font-medium transition-colors',
+                      isActive ? 'bg-indigo-50 text-brand-indigo' : 'text-slate-700 hover:bg-white',
                     ].join(' ')
                   }
                   title="My Profile"
@@ -217,7 +187,7 @@ export default function Navbar() {
                   to="/profile/edit"
                   className={({ isActive }) =>
                     [
-                      'p-1.5 rounded-lg text-slate-500 hover:text-brand-indigo hover:bg-slate-100 transition-colors',
+                      'p-2 rounded-xl text-slate-500 hover:text-brand-indigo hover:bg-white transition-colors',
                       isActive ? 'text-brand-indigo bg-indigo-50' : '',
                     ].join(' ')
                   }
@@ -255,7 +225,7 @@ export default function Navbar() {
 
           {/* Mobile hamburger */}
           <button
-            className="rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 lg:hidden"
+            className="rounded-xl p-2 text-slate-600 transition-colors hover:bg-white lg:hidden"
             onClick={toggleMobile}
             aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={mobileOpen}
@@ -277,7 +247,7 @@ export default function Navbar() {
 
           {/* Drawer */}
           <div
-            className="fixed right-0 top-nav z-30 flex h-[calc(100vh-56px)] w-72 flex-col bg-white shadow-xl lg:hidden"
+            className="fixed right-0 top-[64px] z-30 flex h-[calc(100vh-64px)] w-80 flex-col rounded-l-[20px] border-l border-white/80 bg-white/95 shadow-2xl backdrop-blur-xl lg:hidden"
             role="dialog"
             aria-label="Mobile navigation"
           >

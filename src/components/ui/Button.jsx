@@ -3,11 +3,11 @@ import { Loader2 } from 'lucide-react';
 
 const variants = {
   primary:
-    'bg-brand-indigo text-white hover:bg-brand-indigo-dark focus-visible:ring-brand-indigo',
+    'bg-gradient-to-r from-brand-indigo to-brand-indigo-light text-white shadow-[0_6px_16px_rgba(79,53,201,0.24)] hover:shadow-[0_10px_22px_rgba(79,53,201,0.30)] hover:brightness-105 focus-visible:ring-brand-indigo',
   secondary:
     'bg-brand-cobalt text-white hover:bg-brand-cobalt-dark focus-visible:ring-brand-cobalt',
   outline:
-    'border border-card-border text-slate-700 bg-white hover:bg-slate-50 focus-visible:ring-brand-indigo',
+    'border border-card-border text-slate-700 bg-white/80 hover:border-indigo-200 hover:bg-indigo-50/50 focus-visible:ring-brand-indigo',
   ghost:
     'text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-brand-indigo',
   danger:
@@ -42,8 +42,8 @@ const Button = forwardRef(
         type={type}
         disabled={isDisabled}
         className={[
-          'inline-flex items-center justify-center gap-2 rounded-lg font-medium',
-          'transition-colors duration-150 ease-in-out',
+          'inline-flex items-center justify-center gap-2 rounded-xl font-semibold',
+          'transition-all duration-200 ease-out active:scale-[0.98]',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
           'disabled:opacity-50 disabled:cursor-not-allowed',
           variants[variant],

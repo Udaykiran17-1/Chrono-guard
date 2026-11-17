@@ -137,17 +137,17 @@ export default function ProjectDiscoveryPage() {
     selectedSkillIds.length > 0;
 
   return (
-    <div className="bg-canvas min-h-screen py-8">
+    <div className="min-h-screen bg-transparent py-5 sm:py-7">
       <PageContainer>
         {/* Header Banner */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4 border-b border-card-border pb-6">
+        <div className="mb-6 flex flex-col justify-between gap-4 rounded-2xl border border-white/80 bg-white/65 p-5 shadow-sm backdrop-blur-sm md:flex-row md:items-end sm:p-6">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 border border-indigo-100 px-3 py-0.5 text-xs font-semibold text-brand-indigo mb-2">
               <Briefcase className="h-3.5 w-3.5" />
-              <span>Campus Project Marketplace</span>
+              <span>Project marketplace</span>
             </div>
             <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-              Find Exciting Projects
+              Find projects
             </h1>
             <p className="mt-1 text-sm text-slate-600 max-w-2xl">
               Browse structured opportunities posted by student clubs, engineering teams, and campus creators.
@@ -173,10 +173,10 @@ export default function ProjectDiscoveryPage() {
         </div>
 
         {/* 2-Column Marketplace Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-12">
           {/* ───── LEFT FILTER PANEL (approx 30% = 3.5 cols) ───── */}
           <div
-            className={`lg:col-span-4 space-y-6 ${
+            className={`space-y-5 lg:col-span-3 ${
               mobileFilterOpen ? 'block' : 'hidden lg:block'
             } lg:sticky lg:top-20`}
           >
@@ -284,7 +284,7 @@ export default function ProjectDiscoveryPage() {
           </div>
 
           {/* ───── RIGHT PROJECT FEED (approx 70% = 8 cols) ───── */}
-          <div className="lg:col-span-8 space-y-4">
+          <div className="space-y-4 lg:col-span-9">
             {/* Sort Toolbar */}
             <div className="flex items-center justify-between bg-white px-4 py-2.5 rounded-lg border border-card-border text-xs">
               <span className="font-semibold text-slate-700">

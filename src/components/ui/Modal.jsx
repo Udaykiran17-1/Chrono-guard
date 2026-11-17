@@ -84,7 +84,7 @@ export default function Modal({
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        className="absolute inset-0 bg-slate-950/35 backdrop-blur-md"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -93,7 +93,7 @@ export default function Modal({
       <div
         ref={contentRef}
         className={[
-          'relative w-full rounded-card border border-card-border bg-white shadow-xl',
+          'relative w-full rounded-[20px] border border-white/80 bg-white/95 shadow-[0_24px_70px_rgba(34,23,94,0.28)] backdrop-blur-xl',
           'animate-in fade-in zoom-in-95 duration-200',
           sizeClasses[size],
           className,

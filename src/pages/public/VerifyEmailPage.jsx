@@ -7,7 +7,7 @@ export default function VerifyEmailPage() {
   const email = location.state?.email || 'your registered university email';
 
   return (
-    <div className="min-h-[calc(100vh-56px)] bg-canvas py-16 px-4 sm:px-6 lg:px-8">
+    <div className="relative min-h-[calc(100vh-64px)] overflow-hidden px-4 py-10 sm:px-6 lg:flex lg:items-center lg:px-8">
       <div className="mx-auto max-w-md">
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 text-2xl font-bold text-brand-indigo mb-2">
@@ -20,7 +20,7 @@ export default function VerifyEmailPage() {
           </Link>
         </div>
 
-        <Card className="shadow-lg text-center">
+        <Card className="border-white/90 bg-white/85 text-center shadow-[0_24px_70px_rgba(57,36,157,0.14)] backdrop-blur-xl">
           <CardBody className="p-8 space-y-6">
             <div className="mx-auto w-16 h-16 rounded-full bg-indigo-50 flex items-center justify-center text-brand-indigo">
               <MailCheck className="h-8 w-8" />

@@ -27,7 +27,7 @@ const OrganizationsPage = lazy(() => import('./pages/organizations/Organizations
 export default function App() {
   return (
     <AuthProvider>
-      <div className="flex min-h-screen flex-col bg-canvas text-slate-800">
+      <div className="app-shell flex min-h-screen flex-col text-slate-800">
         <Navbar />
         <div className="flex-1">
           <Suspense fallback={<div className="flex min-h-[50vh] items-center justify-center" role="status"><Spinner size="lg" /></div>}>

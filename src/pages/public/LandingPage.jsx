@@ -183,9 +183,11 @@ export default function LandingPage() {
           Primary button: "Explore Talent"
           Secondary button: "Join SkillBridge"
          ───────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-white border-b border-card-border pt-16 pb-20 sm:pt-24 sm:pb-28">
+      <section className="relative overflow-hidden border-b border-white/80 bg-gradient-to-br from-white via-indigo-50/70 to-violet-100/70 pt-16 pb-20 sm:pt-24 sm:pb-28">
         {/* Subtle background ambient mesh */}
-        <div className="absolute inset-0 bg-[radial-gradient(#3730a3_1px,transparent_1px)] [background-size:24px_24px] opacity-[0.03] pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(#4f35c9_1px,transparent_1px)] [background-size:24px_24px] opacity-[0.05] pointer-events-none" />
+        <div className="pointer-events-none absolute -right-20 top-16 h-72 w-72 rounded-full bg-indigo-300/30 blur-3xl" />
+        <div className="pointer-events-none absolute -left-24 bottom-0 h-64 w-64 rounded-full bg-violet-300/30 blur-3xl" />
 
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
           {/* Campus Tag Pill */}
@@ -195,7 +197,7 @@ export default function LandingPage() {
           </div>
 
           {/* Exact Required Heading */}
-          <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl md:text-6xl max-w-4xl mx-auto leading-[1.15]">
+          <h1 className="text-4xl font-extrabold tracking-[-0.04em] text-slate-900 sm:text-5xl md:text-6xl max-w-4xl mx-auto leading-[1.08]">
             Your Skills Deserve the Right Opportunity.
           </h1>
 

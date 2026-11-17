@@ -161,8 +161,9 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-56px)] bg-canvas py-10 px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-xl">
+    <div className="relative min-h-[calc(100vh-64px)] overflow-hidden px-4 py-8 sm:px-6 lg:flex lg:items-center lg:px-8">
+      <div className="pointer-events-none absolute -right-20 top-10 h-72 w-72 rounded-full bg-violet-300/30 blur-3xl" />
+      <div className="relative mx-auto w-full max-w-2xl">
         {/* Header */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 text-2xl font-bold text-brand-indigo mb-2">
@@ -188,7 +189,7 @@ export default function RegisterPage() {
         </div>
 
         {/* Card */}
-        <Card className="shadow-lg">
+        <Card className="border-white/90 bg-white/85 shadow-[0_24px_70px_rgba(57,36,157,0.14)] backdrop-blur-xl">
           <CardBody className="p-6 sm:p-8">
             {generalError && (
               <div className="mb-6 rounded-lg bg-red-50 p-4 border border-red-200 flex items-start gap-3 text-sm text-red-700">

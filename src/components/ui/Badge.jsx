@@ -1,9 +1,9 @@
 const variantStyles = {
-  neutral: 'bg-slate-100 text-slate-700',
-  indigo: 'bg-indigo-50 text-brand-indigo',
-  teal: 'bg-teal-50 text-brand-teal',
-  amber: 'bg-amber-50 text-amber-700',
-  red: 'bg-red-50 text-red-700',
+  neutral: 'border border-slate-200 bg-slate-100/80 text-slate-700',
+  indigo: 'border border-indigo-100 bg-indigo-50 text-brand-indigo',
+  teal: 'border border-teal-100 bg-teal-50 text-brand-teal',
+  amber: 'border border-amber-100 bg-amber-50 text-amber-700',
+  red: 'border border-red-100 bg-red-50 text-red-700',
 };
 
 export default function Badge({
@@ -16,7 +16,7 @@ export default function Badge({
   return (
     <span
       className={[
-        'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium',
+        'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold',
         variantStyles[variant],
         className,
       ]

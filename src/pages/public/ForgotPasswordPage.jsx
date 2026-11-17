@@ -32,8 +32,9 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-56px)] bg-canvas py-12 px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-md">
+    <div className="relative min-h-[calc(100vh-64px)] overflow-hidden px-4 py-8 sm:px-6 lg:flex lg:items-center lg:px-8">
+      <div className="pointer-events-none absolute -left-20 bottom-10 h-72 w-72 rounded-full bg-indigo-300/30 blur-3xl" />
+      <div className="relative mx-auto w-full max-w-md">
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 text-2xl font-bold text-brand-indigo mb-2">
             <svg width="32" height="32" viewBox="0 0 28 28" fill="none" aria-hidden="true">
@@ -49,7 +50,7 @@ export default function ForgotPasswordPage() {
           </p>
         </div>
 
-        <Card className="shadow-lg">
+        <Card className="border-white/90 bg-white/85 shadow-[0_24px_70px_rgba(57,36,157,0.14)] backdrop-blur-xl">
           <CardBody className="p-6 sm:p-8">
             {submitted ? (
               <div className="text-center py-4 space-y-4">

@@ -76,10 +76,19 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-56px)] bg-canvas py-12 px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-md">
+    <div className="relative min-h-[calc(100vh-64px)] overflow-hidden px-4 py-8 sm:px-6 lg:flex lg:items-center lg:px-8">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_10%,rgba(102,82,230,0.24),transparent_32rem),radial-gradient(circle_at_85%_80%,rgba(176,162,255,0.24),transparent_28rem)]" />
+      <div className="relative mx-auto grid w-full max-w-6xl overflow-hidden rounded-[24px] border border-white/90 bg-white/70 shadow-[0_24px_70px_rgba(57,36,157,0.16)] backdrop-blur-xl lg:grid-cols-[1.05fr_.95fr]">
+        <aside className="relative hidden min-h-[610px] overflow-hidden bg-gradient-to-br from-brand-indigo via-[#5A43D4] to-[#A799FF] p-10 text-white lg:flex lg:flex-col">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_15%,rgba(255,255,255,0.24),transparent_16rem),radial-gradient(circle_at_15%_80%,rgba(22,12,101,0.35),transparent_20rem)]" />
+          <div className="relative"><div className="inline-flex items-center gap-2 text-lg font-extrabold"><span className="grid h-8 w-8 place-items-center rounded-lg bg-white/15 text-sm">✦</span>SkillBridge</div></div>
+          <div className="relative my-auto max-w-sm"><p className="text-sm font-semibold uppercase tracking-[0.18em] text-white/70">Your campus network</p><h1 className="mt-4 text-4xl font-extrabold leading-tight tracking-[-0.04em]">Connect skills. Build projects. Grow together.</h1><p className="mt-5 text-sm leading-6 text-white/85">Discover talented peers, find meaningful project opportunities, and keep every collaboration organized in one place.</p></div>
+          <div className="relative grid gap-3 text-sm text-white/90"><p>✦ Showcase your skills and portfolio</p><p>✦ Find and join student projects</p><p>✦ Collaborate with clear agreements</p></div>
+        </aside>
+        <div className="w-full px-5 py-10 sm:px-10 lg:px-12 lg:py-12">
+          <div className="mx-auto max-w-md">
         {/* Brand header */}
-        <div className="text-center mb-8">
+        <div className="mb-8 text-center">
           <Link to="/" className="inline-flex items-center gap-2 text-2xl font-bold text-brand-indigo mb-2">
             <svg width="32" height="32" viewBox="0 0 28 28" fill="none" aria-hidden="true">
               <rect width="28" height="28" rx="6" fill="#3730A3" />
@@ -103,7 +112,7 @@ export default function LoginPage() {
         </div>
 
         {/* Login Card */}
-        <Card className="shadow-lg">
+        <Card className="border-white/90 bg-white/85 shadow-none">
           <CardBody className="p-6 sm:p-8">
             {/* Unverified Email Warning */}
             {isEmailUnverified && (
@@ -206,6 +215,8 @@ export default function LoginPage() {
             </div>
           </CardBody>
         </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

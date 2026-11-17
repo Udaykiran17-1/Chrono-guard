@@ -22,12 +22,13 @@ const footerLinks = {
 
 export default function Footer() {
   return (
-    <footer className="border-t border-card-border bg-white">
-      <div className="mx-auto max-w-7xl px-4 py-12 lg:px-8">
+    <footer className="mt-10 border-t border-white/80 bg-white/75 backdrop-blur-sm">
+      <div className="mx-auto max-w-[1440px] px-4 py-12 lg:px-8">
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           {/* Brand column */}
           <div className="col-span-2 md:col-span-1">
-            <Link to="/" className="text-lg font-bold text-brand-indigo">
+            <Link to="/" className="inline-flex items-center gap-2 text-lg font-extrabold text-brand-indigo">
+              <span className="grid h-7 w-7 place-items-center rounded-lg bg-brand-indigo text-xs text-white">✦</span>
               SkillBridge
             </Link>
             <p className="mt-3 text-sm text-slate-500 leading-relaxed">
@@ -57,7 +58,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-10 border-t border-card-border pt-6 text-center text-xs text-slate-400">
+        <div className="mt-10 border-t border-indigo-100 pt-6 text-center text-xs text-slate-400">
           © {new Date().getFullYear()} SkillBridge. All rights reserved.
         </div>
       </div>
