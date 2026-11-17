@@ -9,6 +9,11 @@ import VerifyEmailPage from './pages/public/VerifyEmailPage';
 import DashboardOverview from './pages/dashboard/DashboardOverview';
 import ComponentShowcase from './pages/ComponentShowcase';
 
+// Milestone 2 Pages
+import OnboardingPage from './pages/talent/OnboardingPage';
+import StudentProfilePage from './pages/talent/StudentProfilePage';
+import EditProfilePage from './pages/talent/EditProfilePage';
+
 export default function App() {
   return (
     <AuthProvider>
@@ -25,6 +30,40 @@ export default function App() {
             <Route path="/get-started" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/verify-email" element={<VerifyEmailPage />} />
+
+            {/* Milestone 2 Profile & Talent Routes */}
+            <Route
+              path="/onboarding"
+              element={
+                <ProtectedRoute>
+                  <OnboardingPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile/me"
+              element={
+                <ProtectedRoute>
+                  <StudentProfilePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile/edit"
+              element={
+                <ProtectedRoute>
+                  <EditProfilePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile/:id"
+              element={
+                <ProtectedRoute>
+                  <StudentProfilePage />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Protected Temporary Dashboard Route */}
             <Route

@@ -5,7 +5,7 @@ SkillBridge uses Supabase PostgreSQL (15+) as its core persistence engine, emplo
 
 ---
 
-## 1. Schema Entities (001_foundation_schema.sql)
+## 1. Schema Entities
 
 ```mermaid
 erDiagram
@@ -14,6 +14,9 @@ erDiagram
   DEPARTMENTS ||--o{ PROFILES : categorizes
   PROFILES ||--o{ USER_SKILLS : possesses
   SKILLS ||--o{ USER_SKILLS : categorized_in
+  PROFILES ||--o{ PORTFOLIO_ITEMS : authors
+  PORTFOLIO_ITEMS ||--o{ PORTFOLIO_ITEM_SKILLS : tags
+  SKILLS ||--o{ PORTFOLIO_ITEM_SKILLS : references
 ```
 
 ### 1.1 `universities`
@@ -43,7 +46,7 @@ Academic departments under universities.
 *Constraint:* `UNIQUE (university_id, name)`
 
 ### 1.3 `profiles`
-The primary user record, linked 1:1 with Supabase `auth.users(id)`.
+The primary user record, linked 1:1 with Supabase `auth.users(id)`. Extended in Milestone 2.
 
 | Column | Type | Constraints | Description |
 |---|---|---|---|
@@ -59,6 +62,10 @@ The primary user record, linked 1:1 with Supabase `auth.users(id)`.
 | `bio` | `TEXT` | | Extended biography |
 | `availability_status`| `TEXT` | `DEFAULT 'available' CHECK ('available', 'limited', 'busy', 'unavailable')` | Availability status |
 | `availability_note` | `TEXT` | | Context (e.g. "Available on weekends") |
+| `available_from` | `DATE` | | Earliest available date for projects |
+| `areas_of_interest` | `TEXT[]` | `DEFAULT '{}'` | Tags of personal interest |
+| `contact_links` | `JSONB` | `DEFAULT '{}'::jsonb` | Opt-in links (LinkedIn, GitHub, Website) |
+| `onboarding_completed` | `BOOLEAN` | `DEFAULT false` | Guided wizard status |
 | `is_seeker_enabled` | `BOOLEAN` | `DEFAULT true` | Dual capability: hire talent |
 | `is_freelancer_enabled` | `BOOLEAN` | `DEFAULT true` | Dual capability: offer skills |
 | `platform_role` | `TEXT` | `DEFAULT 'user' CHECK ('user', 'admin', 'moderator')` | Role for moderation |
@@ -92,26 +99,58 @@ Junction table linking student profiles to claimed skills with self-reported pro
 
 *Constraint:* `UNIQUE (user_id, skill_id)`
 
+### 1.6 `portfolio_items` (Added in 002)
+Self-reported student projects, previous work, GitHub repositories, and creative assets.
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `id` | `UUID` | `PRIMARY KEY DEFAULT gen_random_uuid()` | Unique portfolio item ID |
+| `user_id` | `UUID` | `NOT NULL REFERENCES profiles(id) ON DELETE CASCADE` | Project owner |
+| `title` | `TEXT` | `NOT NULL` | Project title |
+| `description` | `TEXT` | | Project summary and deliverables |
+| `category` | `TEXT` | | Categorization (e.g. Web Dev, Design) |
+| `thumbnail_url` | `TEXT` | | Preview visual or document cover |
+| `project_url` | `TEXT` | | External demo or live link |
+| `github_url` | `TEXT` | | Code repository link |
+| `attachment_url` | `TEXT` | | Optional attachment/document link |
+| `completed_date` | `DATE` | | Completion date |
+| `created_at` | `TIMESTAMPTZ` | `NOT NULL DEFAULT now()` | Record created |
+| `updated_at` | `TIMESTAMPTZ` | `NOT NULL DEFAULT now()` | Record updated |
+
+### 1.7 `portfolio_item_skills` (Added in 002)
+Junction linking portfolio entries to relevant skills utilized during project execution.
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `portfolio_item_id` | `UUID` | `NOT NULL REFERENCES portfolio_items(id) ON DELETE CASCADE` | Portfolio entry |
+| `skill_id` | `UUID` | `NOT NULL REFERENCES skills(id) ON DELETE CASCADE` | Utilized skill |
+| `created_at` | `TIMESTAMPTZ` | `NOT NULL DEFAULT now()` | Creation timestamp |
+
+*Constraint:* `PRIMARY KEY (portfolio_item_id, skill_id)`
+
 ---
 
-## 2. Automated Triggers
+## 2. Storage Buckets (Supabase Storage)
+
+1. **`avatars`**:
+   - Public read access for rendering profile photographs across the platform.
+   - Max file size: 5MB.
+   - Allowed MIME types: `image/jpeg`, `image/png`, `image/webp`.
+   - Write/Delete operations strictly isolated to authenticated user's own prefix folder (`storage.foldername(name)[1] = auth.uid()::text`).
+
+2. **`portfolio-media`**:
+   - Public read access for portfolio project previews and attachments.
+   - Max file size: 5MB.
+   - Allowed MIME types: `image/jpeg`, `image/png`, `image/webp`, `application/pdf`.
+   - Write/Delete operations isolated to owner.
+
+---
+
+## 3. Database Triggers
 
 1. **`on_auth_user_created`**:
-   - Attached to `auth.users AFTER INSERT`.
-   - Executes `handle_new_user()` with `SECURITY DEFINER SET search_path = public`.
-   - Parses registration metadata (`full_name`, `university_id`, `department_id`, `course`, `academic_year`) and guarantees a synchronized `public.profiles` row exists immediately.
-
+   - Executes `handle_new_user()` with `SECURITY DEFINER SET search_path = public` upon user registration in `auth.users`.
 2. **`trg_prevent_role_escalation`**:
-   - Attached to `public.profiles BEFORE UPDATE`.
-   - Checks if `platform_role` is being modified. Raises an exception unless the requesting user already possesses `platform_role = 'admin'`.
-
+   - Restricts modification of `platform_role` to users who already possess the `admin` role.
 3. **`trg_*_updated_at`**:
-   - Automatically maintains `updated_at = now()` across `universities`, `departments`, and `profiles`.
-
----
-
-## 3. Seed Data (`seed.sql`)
-
-- **Default University:** Apex Institute of Technology & Sciences (`email_domain = NULL` for unhindered local testing).
-- **Core Departments:** Computer Science, Electronics, Mechanical, Design & Media Arts, Business Administration, Media & Communications.
-- **Starter Taxonomy:** Over 30 approved skills categorized across Technical, Creative, and Management & Other.
+   - Automatically maintains `updated_at = now()` across `universities`, `departments`, `profiles`, and `portfolio_items`.

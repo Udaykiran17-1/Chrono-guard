@@ -151,7 +151,7 @@ export default function RegisterPage() {
       if (res.requiresEmailVerification) {
         navigate('/verify-email', { state: { email: formData.email } });
       } else {
-        navigate('/dashboard');
+        navigate('/onboarding');
       }
     } catch (err) {
       setGeneralError(err.message || 'Registration failed. Please check your inputs and try again.');

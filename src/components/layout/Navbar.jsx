@@ -13,6 +13,8 @@ import {
   LogOut,
   Shield,
   Layers,
+  User,
+  Edit3,
 } from 'lucide-react';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
@@ -125,29 +127,52 @@ export default function Navbar() {
 
             {/* Authenticated State vs Guest State */}
             {isAuthenticated ? (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <NavLink
                   to="/dashboard"
                   className={({ isActive }) =>
                     [
-                      'flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
+                      'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors',
+                      isActive ? 'bg-indigo-50 text-brand-indigo' : 'text-slate-600 hover:bg-slate-100',
+                    ].join(' ')
+                  }
+                  title="Dashboard Console"
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  <span>Dashboard</span>
+                </NavLink>
+
+                <NavLink
+                  to="/profile/me"
+                  className={({ isActive }) =>
+                    [
+                      'flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors',
                       isActive ? 'bg-indigo-50 text-brand-indigo' : 'text-slate-700 hover:bg-slate-50',
                     ].join(' ')
                   }
+                  title="My Profile"
                 >
                   <img
                     src={avatarUrl}
                     alt={displayName}
-                    className="h-7 w-7 rounded-full border border-card-border object-cover"
+                    className="h-6 w-6 rounded-full border border-card-border object-cover"
                   />
-                  <div className="text-left">
-                    <p className="font-semibold leading-tight text-slate-900 text-xs truncate max-w-[100px]">
-                      {displayName}
-                    </p>
-                    <span className="text-[10px] text-brand-indigo font-bold uppercase tracking-wider">
-                      {role}
-                    </span>
-                  </div>
+                  <span className="font-semibold text-xs truncate max-w-[90px]">
+                    {displayName}
+                  </span>
+                </NavLink>
+
+                <NavLink
+                  to="/profile/edit"
+                  className={({ isActive }) =>
+                    [
+                      'p-1.5 rounded-lg text-slate-500 hover:text-brand-indigo hover:bg-slate-100 transition-colors',
+                      isActive ? 'text-brand-indigo bg-indigo-50' : '',
+                    ].join(' ')
+                  }
+                  title="Edit Profile"
+                >
+                  <Edit3 className="h-4 w-4" />
                 </NavLink>
 
                 <Button
@@ -207,7 +232,11 @@ export default function Navbar() {
           >
             {/* Authenticated user badge if logged in */}
             {isAuthenticated && (
-              <div className="border-b border-card-border p-4 bg-slate-50/70 flex items-center gap-3">
+              <Link
+                to="/profile/me"
+                onClick={closeMobile}
+                className="border-b border-card-border p-4 bg-slate-50/70 flex items-center gap-3 hover:bg-slate-100"
+              >
                 <img
                   src={avatarUrl}
                   alt={displayName}
@@ -215,11 +244,11 @@ export default function Navbar() {
                 />
                 <div className="overflow-hidden">
                   <p className="font-semibold text-slate-900 text-sm truncate">{displayName}</p>
-                  <Badge variant="indigo" className="mt-0.5 text-[10px]">
-                    ROLE: {role.toUpperCase()}
-                  </Badge>
+                  <span className="text-[10px] text-brand-indigo font-bold uppercase tracking-wider">
+                    View My Profile →
+                  </span>
                 </div>
-              </div>
+              </Link>
             )}
 
             {/* Mobile search */}
@@ -242,23 +271,61 @@ export default function Navbar() {
             <nav className="flex-1 overflow-y-auto p-4">
               <ul className="space-y-1">
                 {isAuthenticated && (
-                  <li>
-                    <NavLink
-                      to="/dashboard"
-                      onClick={closeMobile}
-                      className={({ isActive }) =>
-                        [
-                          'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors',
-                          isActive
-                            ? 'bg-indigo-50 text-brand-indigo'
-                            : 'text-brand-indigo hover:bg-slate-50',
-                        ].join(' ')
-                      }
-                    >
-                      <LayoutDashboard className="h-5 w-5" aria-hidden="true" />
-                      Dashboard
-                    </NavLink>
-                  </li>
+                  <>
+                    <li>
+                      <NavLink
+                        to="/dashboard"
+                        onClick={closeMobile}
+                        className={({ isActive }) =>
+                          [
+                            'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors',
+                            isActive
+                              ? 'bg-indigo-50 text-brand-indigo'
+                              : 'text-slate-800 hover:bg-slate-50',
+                          ].join(' ')
+                        }
+                      >
+                        <LayoutDashboard className="h-5 w-5" aria-hidden="true" />
+                        Dashboard
+                      </NavLink>
+                    </li>
+
+                    <li>
+                      <NavLink
+                        to="/profile/me"
+                        onClick={closeMobile}
+                        className={({ isActive }) =>
+                          [
+                            'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                            isActive
+                              ? 'bg-indigo-50 text-brand-indigo'
+                              : 'text-slate-700 hover:bg-slate-50',
+                          ].join(' ')
+                        }
+                      >
+                        <User className="h-5 w-5" aria-hidden="true" />
+                        My Profile
+                      </NavLink>
+                    </li>
+
+                    <li>
+                      <NavLink
+                        to="/profile/edit"
+                        onClick={closeMobile}
+                        className={({ isActive }) =>
+                          [
+                            'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                            isActive
+                              ? 'bg-indigo-50 text-brand-indigo'
+                              : 'text-slate-700 hover:bg-slate-50',
+                          ].join(' ')
+                        }
+                      >
+                        <Edit3 className="h-5 w-5" aria-hidden="true" />
+                        Edit Profile & Skills
+                      </NavLink>
+                    </li>
+                  </>
                 )}
 
                 {navLinks.map(({ to, label, icon: Icon }) => (

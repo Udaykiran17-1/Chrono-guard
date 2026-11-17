@@ -11,6 +11,10 @@ import {
   LogOut,
   Sparkles,
   Award,
+  Edit3,
+  Layers,
+  Clock,
+  ArrowRight,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Button, Card, CardHeader, CardBody, CardFooter, Badge } from '../../components/ui';
@@ -28,9 +32,35 @@ export default function DashboardOverview() {
 
   const role = profile?.platform_role || 'user';
   const availability = profile?.availability_status || 'available';
+  const onboardingCompleted = profile?.onboarding_completed ?? false;
 
   return (
     <PageContainer className="py-8">
+      {/* Onboarding Incomplete Banner */}
+      {!onboardingCompleted && (
+        <div className="mb-6 rounded-card border border-indigo-200 bg-indigo-50/80 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-in fade-in">
+          <div className="flex items-center gap-3">
+            <div className="rounded-full bg-brand-indigo p-2.5 text-white">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900">
+                Complete Your Profile Setup
+              </h3>
+              <p className="text-xs text-slate-600">
+                Configure your dual-role preferences, listed skills, and portfolio work so campus clubs can discover you.
+              </p>
+            </div>
+          </div>
+          <Link to="/onboarding">
+            <Button size="sm" className="whitespace-nowrap flex items-center gap-1.5 shadow-sm">
+              <span>Start Onboarding Wizard</span>
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
+      )}
+
       {/* Top Welcome Alert / Verification banner */}
       <div className="mb-8 rounded-card border border-teal-200 bg-teal-50/70 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -42,7 +72,7 @@ export default function DashboardOverview() {
               Authentication & Session Verified
             </h2>
             <p className="text-xs text-slate-600">
-              End-to-end registration and session hydration are active. Welcome to your SkillBridge command center.
+              Milestone 2 Student Profiles, Skills Taxonomy, and Portfolios are operational.
             </p>
           </div>
         </div>
@@ -68,13 +98,16 @@ export default function DashboardOverview() {
                   alt={displayName}
                   className="h-20 w-20 rounded-full border-4 border-white bg-white shadow-md object-cover"
                 />
-                <Badge variant={role === 'admin' ? 'indigo' : 'neutral'}>
-                  {role === 'admin' ? 'Admin' : 'Student Member'}
-                </Badge>
+                <Link to="/profile/edit">
+                  <Button variant="outline" size="sm" className="text-xs py-1 px-2.5">
+                    <Edit3 className="h-3.5 w-3.5 mr-1" />
+                    Edit
+                  </Button>
+                </Link>
               </div>
 
               <h1 className="text-xl font-bold text-slate-900">{displayName}</h1>
-              <p className="text-xs text-slate-500 font-mono mt-0.5">{displayEmail}</p>
+              <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{profile?.headline || displayEmail}</p>
 
               <div className="mt-4 space-y-2 border-t border-card-border pt-4 text-xs text-slate-600">
                 <div className="flex items-center gap-2">
@@ -95,11 +128,13 @@ export default function DashboardOverview() {
                 </div>
               </div>
 
-              <div className="mt-5 pt-4 border-t border-card-border flex items-center justify-between text-xs">
-                <span className="text-slate-500">Account Status:</span>
-                <span className="font-semibold text-emerald-600 capitalize">
-                  {profile?.account_status || 'Active'}
-                </span>
+              {/* View Profile Action */}
+              <div className="mt-5 pt-3 border-t border-card-border">
+                <Link to="/profile/me" className="block">
+                  <Button variant="primary" size="sm" className="w-full">
+                    View My Public Profile
+                  </Button>
+                </Link>
               </div>
             </CardBody>
             <CardFooter className="flex justify-between items-center bg-slate-50/50">
@@ -111,79 +146,96 @@ export default function DashboardOverview() {
             </CardFooter>
           </Card>
 
-          {/* Quick Stats / Dual Capabilities */}
+          {/* Quick Shortcuts */}
           <Card>
             <CardHeader>
-              <h3 className="text-sm font-semibold text-slate-900">Dual Capability Status</h3>
+              <h3 className="text-sm font-semibold text-slate-900">Profile & Skills Management</h3>
             </CardHeader>
-            <CardBody className="space-y-3">
-              <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 border border-card-border">
-                <div className="flex items-center gap-2.5">
-                  <Briefcase className="h-4 w-4 text-brand-indigo" />
-                  <span className="text-xs font-medium text-slate-800">Skill Seeker Mode</span>
+            <CardBody className="space-y-2">
+              <Link
+                to="/profile/me"
+                className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-card-border transition-colors text-xs font-semibold text-slate-800"
+              >
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-brand-indigo" />
+                  <span>View Student Profile View</span>
                 </div>
-                <Badge variant="teal">Enabled</Badge>
-              </div>
+                <span>→</span>
+              </Link>
 
-              <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 border border-card-border">
-                <div className="flex items-center gap-2.5">
-                  <Users className="h-4 w-4 text-brand-teal" />
-                  <span className="text-xs font-medium text-slate-800">Student Freelancer Mode</span>
+              <Link
+                to="/profile/edit"
+                className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-card-border transition-colors text-xs font-semibold text-slate-800"
+              >
+                <div className="flex items-center gap-2">
+                  <Edit3 className="h-4 w-4 text-brand-cobalt" />
+                  <span>Edit Bio, Skills & Portfolio</span>
                 </div>
-                <Badge variant="teal">Enabled</Badge>
-              </div>
+                <span>→</span>
+              </Link>
+
+              <Link
+                to="/onboarding"
+                className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-card-border transition-colors text-xs font-semibold text-slate-800"
+              >
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-brand-teal" />
+                  <span>Rerun Onboarding Wizard</span>
+                </div>
+                <span>→</span>
+              </Link>
             </CardBody>
           </Card>
         </div>
 
-        {/* Right Col: Temporary Milestone 1 Dashboard Overview */}
+        {/* Right Col: Milestone 2 Dashboard Overview */}
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader className="flex items-center justify-between">
               <div>
                 <h3 className="text-base font-semibold text-slate-900">
-                  Milestone 1 Verification Console
+                  Milestone 2: Profile & Portfolio System
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Core foundation, PostgreSQL schema, RLS policies, and Auth are operational.
+                  Student Profiles, Skills Taxonomy, and Portfolios are operational.
                 </p>
               </div>
               <Badge variant="indigo" icon={Sparkles}>
-                Step 1C & 1D
+                Milestone 2
               </Badge>
             </CardHeader>
             <CardBody className="space-y-4">
               <p className="text-sm text-slate-600 leading-relaxed">
-                You have successfully authenticated into SkillBridge. As specified in the product roadmap, user profile management, talent discovery filters, and project marketplace interactions will be unlocked in upcoming milestones.
+                SkillBridge profiles now support asymmetric LinkedIn-style presentations, self-reported skill proficiency ratings, and portfolio project showcases.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                 <div className="rounded-card border border-card-border p-4 bg-white hover:border-brand-indigo transition-colors">
                   <div className="flex items-center gap-2 text-brand-indigo font-semibold text-sm mb-1">
-                    <Users className="h-4 w-4" />
-                    Explore Student Talent
+                    <User className="h-4 w-4" />
+                    Student Profile
                   </div>
                   <p className="text-xs text-slate-500 mb-3">
-                    Preview verified student capabilities and portfolios across campus.
+                    View your profile as campus organizations and student collaborators see it.
                   </p>
-                  <Link to="/#talent">
+                  <Link to="/profile/me">
                     <Button variant="outline" size="sm" className="w-full">
-                      View Talent Preview
+                      Open Profile View
                     </Button>
                   </Link>
                 </div>
 
                 <div className="rounded-card border border-card-border p-4 bg-white hover:border-brand-cobalt transition-colors">
                   <div className="flex items-center gap-2 text-brand-cobalt font-semibold text-sm mb-1">
-                    <Briefcase className="h-4 w-4" />
-                    Find Campus Projects
+                    <Layers className="h-4 w-4" />
+                    Portfolio & Skills
                   </div>
                   <p className="text-xs text-slate-500 mb-3">
-                    Discover projects and freelance opportunities posted by clubs & students.
+                    Add new projects, associate technology pills, or propose unlisted skills.
                   </p>
-                  <Link to="/#projects">
+                  <Link to="/profile/edit">
                     <Button variant="outline" size="sm" className="w-full">
-                      View Projects Preview
+                      Manage Portfolio
                     </Button>
                   </Link>
                 </div>
@@ -192,18 +244,18 @@ export default function DashboardOverview() {
               {/* Verified Session Details */}
               <div className="mt-6 border-t border-card-border pt-4">
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
-                  Session Diagnostic Payload
+                  Session & Entity Diagnostics
                 </h4>
                 <div className="rounded-lg bg-slate-900 p-3 text-emerald-400 font-mono text-xs overflow-x-auto">
                   <pre>
 {JSON.stringify(
   {
     userId: user?.id,
-    email: user?.email,
     fullName: displayName,
     role: role,
-    accountStatus: profile?.account_status || 'active',
-    databaseTarget: 'public.profiles (RLS Enabled)',
+    availability: availability,
+    onboardingCompleted: onboardingCompleted,
+    databaseTarget: 'public.profiles, public.portfolio_items, public.user_skills',
   },
   null,
   2
@@ -216,7 +268,7 @@ export default function DashboardOverview() {
 
           {/* Quick shortcuts */}
           <div className="flex items-center justify-between text-xs text-slate-500 px-2">
-            <span>SkillBridge Campus Platform — Milestone 1</span>
+            <span>SkillBridge Campus Platform — Milestone 2</span>
             <Link to="/showcase" className="text-brand-cobalt hover:underline">
               Inspect UI Component Showcase →
             </Link>

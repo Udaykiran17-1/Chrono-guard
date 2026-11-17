@@ -29,6 +29,10 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 | `/register` | Campus registration with institution selector & validation | Public |
 | `/forgot-password` | Password recovery request | Public |
 | `/verify-email` | Institutional email verification guidance | Public |
+| `/onboarding` | Guided post-registration setup (Roles, Skills, First Project) | Protected |
+| `/profile/me` | Asymmetric LinkedIn-style profile view for current user | Protected |
+| `/profile/:id` | Student profile view with portfolio & availability | Protected |
+| `/profile/edit` | Tabbed Profile, Bio, Skills & Portfolio project editor | Protected |
 | `/dashboard` | Authenticated session & profile verification console | Protected |
 | `/showcase` | Interactive UI component & design system showcase | Public |
 
@@ -39,30 +43,33 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 ```
 ├── supabase/
 │   ├── migrations/
-│   │   └── 001_foundation_schema.sql  # PostgreSQL schema, triggers & RLS
-│   └── seed.sql                       # Default university, departments & skills
+│   │   ├── 001_foundation_schema.sql       # PostgreSQL foundation & strict RLS
+│   │   └── 002_profiles_and_portfolios.sql # Profiles extension, portfolios & storage
+│   └── seed.sql                            # Default university, departments & skills
 ├── src/
 │   ├── components/
-│   │   ├── layout/                    # Navbar, Footer, PageContainer, ProtectedRoute
-│   │   └── ui/                        # Button, Input, Select, Card, Badge, Modal, etc.
+│   │   ├── layout/                         # Navbar, Footer, PageContainer, ProtectedRoute
+│   │   └── ui/                             # Button, Input, Select, Card, Badge, Modal, etc.
 │   ├── context/
-│   │   └── AuthContext.jsx            # Authentication state & session manager
+│   │   └── AuthContext.jsx                 # Authentication state & session manager
 │   ├── services/
-│   │   └── authService.js             # Supabase Auth client & resilient local mock fallback
+│   │   ├── authService.js                  # Supabase Auth client & sandbox fallback
+│   │   └── profileService.js               # Zero-query UI layer for profiles & portfolios
 │   ├── lib/
-│   │   └── supabase.js                # Safe Supabase client initialization
+│   │   └── supabase.js                     # Safe Supabase client initialization
 │   ├── pages/
-│   │   ├── public/                    # LandingPage, LoginPage, RegisterPage, etc.
-│   │   ├── dashboard/                 # DashboardOverview (session verification)
-│   │   └── ComponentShowcase.jsx      # UI component gallery
-│   ├── App.jsx                        # Routing and global layout
-│   └── main.jsx                       # Application mount
+│   │   ├── public/                         # LandingPage, LoginPage, RegisterPage, etc.
+│   │   ├── talent/                         # OnboardingPage, StudentProfilePage, EditProfilePage
+│   │   ├── dashboard/                      # DashboardOverview
+│   │   └── ComponentShowcase.jsx           # UI component gallery
+│   ├── App.jsx                             # Routing and global layout
+│   └── main.jsx                            # Application mount
 └── docs/
-    ├── DATABASE.md                    # Relational schema & RLS specification
-    ├── SECURITY.md                    # Auth & security architecture
-    ├── DESIGN_SYSTEM.md               # Visual design tokens & components
-    ├── DEVELOPMENT_PLAN.md            # Roadmap & milestone status
-    └── CHANGELOG.md                   # Release history
+    ├── DATABASE.md                         # Relational schema & RLS specification
+    ├── SECURITY.md                         # Auth & security architecture
+    ├── DESIGN_SYSTEM.md                    # Visual design tokens & components
+    ├── DEVELOPMENT_PLAN.md                 # Roadmap & milestone status
+    └── CHANGELOG.md                        # Release history
 ```
 
 ## 🛠 Tech Stack
@@ -71,7 +78,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 - **Tailwind CSS v4** (`@tailwindcss/vite`)
 - **React Router v7**
 - **Lucide React** (icons)
-- **Supabase PostgreSQL** + **Supabase Auth** (with sandbox fallback)
+- **Supabase PostgreSQL** + **Supabase Auth** + **Supabase Storage** (with sandbox fallback)
 
 ## 📚 Documentation
 - [Database Schema & Triggers](./docs/DATABASE.md)
