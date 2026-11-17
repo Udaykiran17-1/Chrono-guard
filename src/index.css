@@ -1,0 +1,34 @@
+@import 'tailwindcss';
+@config '../tailwind.config.js';
+
+/* ───── Base ───── */
+body {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: #F3F2EF;
+  color: #1E293B;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  padding: 0;
+}
+
+/* ───── Focus ring utility ───── */
+*:focus-visible {
+  outline: 2px solid #3730A3;
+  outline-offset: 2px;
+}
+
+/* ───── Scrollbar (webkit) ───── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.15);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 23, 42, 0.25);
+}
