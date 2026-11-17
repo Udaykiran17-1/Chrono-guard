@@ -9,7 +9,7 @@
 
 ## 2. Row Level Security (RLS) Policies
 
-RLS is strictly enabled across all public schema tables in `001_foundation_schema.sql` and `002_profiles_and_portfolios.sql`.
+RLS is strictly enabled across all public schema tables in `001_foundation_schema.sql`, `002_profiles_and_portfolios.sql`, and `003_marketplace_and_projects.sql`.
 
 ### 2.1 Profiles (`public.profiles`)
 - **SELECT:**
@@ -41,7 +41,34 @@ RLS is strictly enabled across all public schema tables in `001_foundation_schem
 - **SELECT:** Authenticated users can read skills linked to portfolio entries belonging to active profiles.
 - **INSERT / UPDATE / DELETE:** Restricted to cases where the parent portfolio item belongs to the authenticated user (`EXISTS (SELECT 1 FROM portfolio_items pi WHERE pi.id = portfolio_item_skills.portfolio_item_id AND pi.user_id = auth.uid())`).
 
-### 2.6 Universities & Departments
+### 2.6 Projects (`public.projects`) (Added in 003)
+- **SELECT:**
+  - Authenticated users can view all non-draft projects (`status != 'draft'`).
+  - Project creators can view their own draft projects (`creator_id = auth.uid()`).
+- **INSERT:**
+  - Restricted to authenticated users creating projects under their own identity (`WITH CHECK (creator_id = auth.uid())`).
+- **UPDATE:**
+  - Restricted to the project creator (`creator_id = auth.uid()`).
+  - Status mutations are gated by database trigger `trg_enforce_project_status_transition` to ensure workflow integrity.
+- **DELETE:**
+  - Restricted to the project creator (`creator_id = auth.uid()`).
+
+### 2.7 Project Skills (`public.project_skills`) (Added in 003)
+- **SELECT:**
+  - Authenticated users can view skills for visible projects (`p.status != 'draft' OR p.creator_id = auth.uid()`).
+- **INSERT / UPDATE / DELETE:**
+  - Restricted to the project creator (`EXISTS (SELECT 1 FROM projects p WHERE p.id = project_skills.project_id AND p.creator_id = auth.uid())`).
+
+### 2.8 Saved Bookmarks (`public.saved_projects` & `public.saved_freelancers`) (Added in 003)
+- **SELECT:**
+  - Strictly restricted to the bookmark owner (`user_id = auth.uid()`). Privacy guaranteed: peers cannot inspect other users' bookmarks.
+- **INSERT:**
+  - Restricted to inserting for self (`user_id = auth.uid()`).
+  - Constraint `chk_no_self_save` prevents users from bookmarking their own talent profile.
+- **DELETE:**
+  - Restricted to removing self-created bookmarks (`user_id = auth.uid()`).
+
+### 2.9 Universities & Departments
 - **SELECT:** Active universities and their associated departments are publicly readable.
 - **INSERT / UPDATE / DELETE:** Restricted to administrative users.
 
@@ -57,3 +84,12 @@ RLS is strictly enabled across all public schema tables in `001_foundation_schem
    - Maximum file size: `5MB` (`5,242,880` bytes).
    - Allowed MIME types: `image/jpeg`, `image/png`, `image/webp`, and `application/pdf` (portfolio media only).
    - In fallback/offline local mode, images are sanitized and stored as local data URLs to prevent arbitrary executable file execution.
+
+---
+
+## 4. State Transition Integrity
+
+The platform enforces state-machine constraints at the database trigger level:
+- Projects cannot arbitrarily transition between non-sequential statuses (e.g. `open` cannot jump directly to `completed` without an intermediate `in_progress` agreement phase).
+- Cancelling a project requires a non-empty `cancellation_reason` to provide transparency to applicants.
+- Completed and cancelled projects are immutable terminal states.

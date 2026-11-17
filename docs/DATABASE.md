@@ -17,6 +17,12 @@ erDiagram
   PROFILES ||--o{ PORTFOLIO_ITEMS : authors
   PORTFOLIO_ITEMS ||--o{ PORTFOLIO_ITEM_SKILLS : tags
   SKILLS ||--o{ PORTFOLIO_ITEM_SKILLS : references
+  PROFILES ||--o{ PROJECTS : creates
+  PROJECTS ||--o{ PROJECT_SKILLS : requires
+  SKILLS ||--o{ PROJECT_SKILLS : referenced_by
+  PROFILES ||--o{ SAVED_PROJECTS : bookmarks
+  PROJECTS ||--o{ SAVED_PROJECTS : bookmarked_in
+  PROFILES ||--o{ SAVED_FREELANCERS : bookmarks
 ```
 
 ### 1.1 `universities`
@@ -46,7 +52,7 @@ Academic departments under universities.
 *Constraint:* `UNIQUE (university_id, name)`
 
 ### 1.3 `profiles`
-The primary user record, linked 1:1 with Supabase `auth.users(id)`. Extended in Milestone 2.
+The primary user record, linked 1:1 with Supabase `auth.users(id)`.
 
 | Column | Type | Constraints | Description |
 |---|---|---|---|
@@ -99,7 +105,7 @@ Junction table linking student profiles to claimed skills with self-reported pro
 
 *Constraint:* `UNIQUE (user_id, skill_id)`
 
-### 1.6 `portfolio_items` (Added in 002)
+### 1.6 `portfolio_items`
 Self-reported student projects, previous work, GitHub repositories, and creative assets.
 
 | Column | Type | Constraints | Description |
@@ -117,7 +123,7 @@ Self-reported student projects, previous work, GitHub repositories, and creative
 | `created_at` | `TIMESTAMPTZ` | `NOT NULL DEFAULT now()` | Record created |
 | `updated_at` | `TIMESTAMPTZ` | `NOT NULL DEFAULT now()` | Record updated |
 
-### 1.7 `portfolio_item_skills` (Added in 002)
+### 1.7 `portfolio_item_skills`
 Junction linking portfolio entries to relevant skills utilized during project execution.
 
 | Column | Type | Constraints | Description |
@@ -127,6 +133,66 @@ Junction linking portfolio entries to relevant skills utilized during project ex
 | `created_at` | `TIMESTAMPTZ` | `NOT NULL DEFAULT now()` | Creation timestamp |
 
 *Constraint:* `PRIMARY KEY (portfolio_item_id, skill_id)`
+
+### 1.8 `projects` (Added in 003)
+Structured project briefs created by student peers or campus club organizers.
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `id` | `UUID` | `PRIMARY KEY DEFAULT gen_random_uuid()` | Unique project ID |
+| `creator_id` | `UUID` | `NOT NULL REFERENCES profiles(id) ON DELETE CASCADE` | Creator user profile |
+| `organisation_id` | `UUID` | `NULLABLE` | Optional club/organisation affiliation |
+| `title` | `TEXT` | `NOT NULL` | Brief title |
+| `what_needs_doing` | `TEXT` | `NOT NULL` | Plain-English project scope |
+| `why_required` | `TEXT` | `NOT NULL` | Context and objective |
+| `expected_deliverables`| `TEXT` | `NOT NULL` | Concrete output milestones |
+| `additional_requirements`| `TEXT` | `NULLABLE` | Formatting, tools, attendance rules |
+| `category` | `TEXT` | `NOT NULL` | Market category |
+| `budget_type` | `TEXT` | `CHECK ('fixed', 'negotiable', 'unpaid', 'volunteer', 'other')` | Compensation model |
+| `budget_min` | `NUMERIC` | `CHECK (budget_min >= 0)` | Lower range |
+| `budget_max` | `NUMERIC` | `CHECK (budget_max >= 0)` | Upper range |
+| `budget_note` | `TEXT` | `NULLABLE` | Milestone pay context |
+| `deadline` | `DATE` | `NOT NULL` | Final delivery date |
+| `estimated_duration` | `TEXT` | `NULLABLE` | e.g. "2 weeks", "1 month" |
+| `positions_total` | `INTEGER` | `NOT NULL DEFAULT 1 CHECK (positions_total >= 1)` | Open spots count |
+| `positions_filled` | `INTEGER` | `NOT NULL DEFAULT 0 CHECK (positions_filled >= 0)` | Contracted spots count |
+| `status` | `TEXT` | `CHECK ('draft', 'open', 'reviewing', 'in_progress', 'completed', 'cancelled', 'closed')` | Project lifecycle |
+| `cancellation_reason` | `TEXT` | `NULLABLE` | Mandatory on cancellation |
+| `created_at` | `TIMESTAMPTZ` | `NOT NULL DEFAULT now()` | Record created |
+| `updated_at` | `TIMESTAMPTZ` | `NOT NULL DEFAULT now()` | Record updated |
+
+### 1.9 `project_skills` (Added in 003)
+Junction linking projects to required technical and creative skills.
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `project_id` | `UUID` | `NOT NULL REFERENCES projects(id) ON DELETE CASCADE` | Parent project |
+| `skill_id` | `UUID` | `NOT NULL REFERENCES skills(id) ON DELETE CASCADE` | Required skill |
+| `created_at` | `TIMESTAMPTZ` | `NOT NULL DEFAULT now()` | Creation timestamp |
+
+*Constraint:* `PRIMARY KEY (project_id, skill_id)`
+
+### 1.10 `saved_projects` (Added in 003)
+Student bookmarks for projects of interest.
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `user_id` | `UUID` | `NOT NULL REFERENCES profiles(id) ON DELETE CASCADE` | Student saving project |
+| `project_id` | `UUID` | `NOT NULL REFERENCES projects(id) ON DELETE CASCADE` | Saved project |
+| `created_at` | `TIMESTAMPTZ` | `NOT NULL DEFAULT now()` | Bookmark timestamp |
+
+*Constraint:* `PRIMARY KEY (user_id, project_id)`
+
+### 1.11 `saved_freelancers` (Added in 003)
+Creator / organizer bookmarks for student talent discovered in the directory.
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `user_id` | `UUID` | `NOT NULL REFERENCES profiles(id) ON DELETE CASCADE` | User saving talent |
+| `freelancer_id` | `UUID` | `NOT NULL REFERENCES profiles(id) ON DELETE CASCADE` | Saved student talent |
+| `created_at` | `TIMESTAMPTZ` | `NOT NULL DEFAULT now()` | Bookmark timestamp |
+
+*Constraint:* `PRIMARY KEY (user_id, freelancer_id)`
 
 ---
 
@@ -152,5 +218,14 @@ Junction linking portfolio entries to relevant skills utilized during project ex
    - Executes `handle_new_user()` with `SECURITY DEFINER SET search_path = public` upon user registration in `auth.users`.
 2. **`trg_prevent_role_escalation`**:
    - Restricts modification of `platform_role` to users who already possess the `admin` role.
-3. **`trg_*_updated_at`**:
-   - Automatically maintains `updated_at = now()` across `universities`, `departments`, `profiles`, and `portfolio_items`.
+3. **`trg_enforce_project_status_transition`** (Added in 003):
+   - Enforces valid state machine transitions:
+     - `draft` → `open`, `cancelled`
+     - `open` → `reviewing`, `cancelled`, `closed`
+     - `reviewing` → `open`, `in_progress`, `cancelled`, `closed`
+     - `in_progress` → `completed`, `cancelled`
+     - `completed`, `cancelled`, `closed` → terminal states
+   - Mandates non-empty `cancellation_reason` when moving to `cancelled`.
+   - Automatically transitions project to `closed` when `positions_filled >= positions_total`.
+4. **`trg_*_updated_at`**:
+   - Automatically maintains `updated_at = now()` across `universities`, `departments`, `profiles`, `portfolio_items`, and `projects`.

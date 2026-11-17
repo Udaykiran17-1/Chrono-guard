@@ -29,11 +29,16 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 | `/register` | Campus registration with institution selector & validation | Public |
 | `/forgot-password` | Password recovery request | Public |
 | `/verify-email` | Institutional email verification guidance | Public |
+| `/talent` | Searchable Talent Discovery Directory with multi-attribute filters | Public / Auth |
+| `/projects` | Filterable Project Discovery Marketplace | Public / Auth |
+| `/projects/new` | Structured Project Posting Wizard (Section 6.2) | Protected |
+| `/projects/:id` | Detailed Project Brief & Recommended Freelancers Matching | Public / Auth |
+| `/projects/:id/edit` | Project Brief Editor & Status Controls | Protected |
 | `/onboarding` | Guided post-registration setup (Roles, Skills, First Project) | Protected |
 | `/profile/me` | Asymmetric LinkedIn-style profile view for current user | Protected |
 | `/profile/:id` | Student profile view with portfolio & availability | Protected |
 | `/profile/edit` | Tabbed Profile, Bio, Skills & Portfolio project editor | Protected |
-| `/dashboard` | Authenticated session & profile verification console | Protected |
+| `/dashboard` | Authenticated session, recommendations & project management console | Protected |
 | `/showcase` | Interactive UI component & design system showcase | Public |
 
 ---
@@ -44,7 +49,8 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 ├── supabase/
 │   ├── migrations/
 │   │   ├── 001_foundation_schema.sql       # PostgreSQL foundation & strict RLS
-│   │   └── 002_profiles_and_portfolios.sql # Profiles extension, portfolios & storage
+│   │   ├── 002_profiles_and_portfolios.sql # Profiles extension, portfolios & storage
+│   │   └── 003_marketplace_and_projects.sql # Projects, state machine trigger & bookmarks
 │   └── seed.sql                            # Default university, departments & skills
 ├── src/
 │   ├── components/
@@ -54,12 +60,15 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 │   │   └── AuthContext.jsx                 # Authentication state & session manager
 │   ├── services/
 │   │   ├── authService.js                  # Supabase Auth client & sandbox fallback
-│   │   └── profileService.js               # Zero-query UI layer for profiles & portfolios
+│   │   ├── profileService.js               # Zero-query UI layer for profiles & portfolios
+│   │   ├── talentService.js                # Talent discovery & candidate matching engine
+│   │   └── projectService.js               # Project CRUD, status transitions & recommendations
 │   ├── lib/
 │   │   └── supabase.js                     # Safe Supabase client initialization
 │   ├── pages/
 │   │   ├── public/                         # LandingPage, LoginPage, RegisterPage, etc.
-│   │   ├── talent/                         # OnboardingPage, StudentProfilePage, EditProfilePage
+│   │   ├── talent/                         # OnboardingPage, StudentProfilePage, EditProfilePage, TalentDirectoryPage
+│   │   ├── projects/                       # ProjectDiscoveryPage, CreateProjectPage, ProjectDetailPage
 │   │   ├── dashboard/                      # DashboardOverview
 │   │   └── ComponentShowcase.jsx           # UI component gallery
 │   ├── App.jsx                             # Routing and global layout

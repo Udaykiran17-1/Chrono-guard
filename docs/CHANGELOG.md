@@ -6,6 +6,43 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.4.0] — 2026-11-17
+
+### Added - Milestone 3 (Talent Discovery, Structured Project Creation, Project Marketplace & Recommendations)
+- **Database Schema & Status Integrity:**
+  - `supabase/migrations/003_marketplace_and_projects.sql` creating `projects`, `project_skills`, `saved_projects`, and `saved_freelancers` with UUID PKs and cascade foreign keys.
+  - PostgreSQL trigger `trg_enforce_project_status_transition` enforcing legitimate state machine transitions (`draft` → `open`/`cancelled`, `open` → `reviewing`/`cancelled`/`closed`, `reviewing` → `in_progress`, etc.) and mandating a non-empty `cancellation_reason` when projects are cancelled.
+  - Strict Row Level Security policies guaranteeing private bookmarks (`auth.uid() = user_id`), owner-scoped project edits, and public visibility for active projects.
+- **Service Layer (`src/services/talentService.js` & `src/services/projectService.js`):**
+  - Zero-query UI architecture providing complete search, filtering, and CRUD operations.
+  - Transparent rule-based recommendation engines:
+    - `getRecommendedFreelancers(projectId)`: computes match scores based on primary skills, claimed proficiency, and availability status.
+    - `getRecommendedProjects(userId)`: computes student match scores based on skill overlaps, primary designations, and proficiency levels with human-readable rationale tags.
+  - Rich mock data fallback for seamless local sandbox testing.
+- **Talent Discovery Directory (`src/pages/talent/TalentDirectoryPage.jsx` at `/talent`):**
+  - Granular sticky filter sidebar: Skill category, multi-skill selection, academic department, academic year, availability status, and proficiency level.
+  - Search input with live debouncing and sort options (Recently Active, Recently Joined, Relevant Skills, Availability).
+  - Responsive student cards displaying academic affiliation, headline, primary skills pills, availability badges, and 1-click bookmarking.
+- **Structured Project Posting Wizard (`src/pages/projects/CreateProjectPage.jsx` at `/projects/new` & `/projects/:id/edit`):**
+  - Section 6.2 field decomposition: What needs doing, Why it's needed, Expected deliverables, and Additional requirements.
+  - Skill tagging with primary/secondary attributes.
+  - Transparent compensation model disclosure (Fixed, Negotiable, Unpaid, Volunteer, Other) with explanatory notes.
+  - Support for draft saving vs. immediate publishing.
+- **Project Discovery Marketplace (`src/pages/projects/ProjectDiscoveryPage.jsx` at `/projects`):**
+  - Filterable feed with keyword search, category selector, compensation filter, required skill selector, and sorting.
+  - Project cards displaying creator details, spots filled/total, compensation badges, deadlines, and bookmark toggle.
+- **Project Detail View (`src/pages/projects/ProjectDetailPage.jsx` at `/projects/:id`):**
+  - Detailed project brief breakdown (Scope, Purpose, Concrete Deliverables, Requirements).
+  - Creator management controls: Edit Project, Close Applications, and Cancel Project with mandatory cancellation reason modal.
+  - Integrated "Recommended Candidates" matching engine widget for creators.
+  - Peer actions: Bookmark project, placeholder "Apply for Project" action.
+- **Navigation & Dashboard Enhancements:**
+  - `Navbar.jsx`: Added direct links to "Explore Talent" (`/talent`), "Find Projects" (`/projects`), and "+ Post Project" action button.
+  - `DashboardOverview.jsx`: Added "Recommended Projects for You" with explainable match badges, "Projects I Posted" management section, and quick bookmark counters.
+  - `App.jsx`: Registered all Milestone 3 routes with protected wrappers.
+
+---
+
 ## [0.3.0] — 2026-11-17
 
 ### Added - Milestone 2 (Student Profiles, Skills, Portfolios & Availability)

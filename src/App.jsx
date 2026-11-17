@@ -14,6 +14,12 @@ import OnboardingPage from './pages/talent/OnboardingPage';
 import StudentProfilePage from './pages/talent/StudentProfilePage';
 import EditProfilePage from './pages/talent/EditProfilePage';
 
+// Milestone 3 Pages
+import TalentDirectoryPage from './pages/talent/TalentDirectoryPage';
+import ProjectDiscoveryPage from './pages/projects/ProjectDiscoveryPage';
+import CreateProjectPage from './pages/projects/CreateProjectPage';
+import ProjectDetailPage from './pages/projects/ProjectDetailPage';
+
 export default function App() {
   return (
     <AuthProvider>
@@ -61,6 +67,27 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <StudentProfilePage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Milestone 3 Marketplace & Discovery Routes */}
+            <Route path="/talent" element={<TalentDirectoryPage />} />
+            <Route path="/projects" element={<ProjectDiscoveryPage />} />
+            <Route
+              path="/projects/new"
+              element={
+                <ProtectedRoute>
+                  <CreateProjectPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/projects/:id" element={<ProjectDetailPage />} />
+            <Route
+              path="/projects/:id/edit"
+              element={
+                <ProtectedRoute>
+                  <CreateProjectPage />
                 </ProtectedRoute>
               }
             />

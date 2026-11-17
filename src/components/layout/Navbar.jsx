@@ -15,6 +15,7 @@ import {
   Layers,
   User,
   Edit3,
+  Plus,
 } from 'lucide-react';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
@@ -22,8 +23,8 @@ import { useAuth } from '../../context/AuthContext';
 
 const navLinks = [
   { to: '/', label: 'Home', icon: Home },
-  { to: '/#talent', label: 'Explore Talent', icon: Users },
-  { to: '/#projects', label: 'Find Projects', icon: Briefcase },
+  { to: '/talent', label: 'Explore Talent', icon: Users },
+  { to: '/projects', label: 'Find Projects', icon: Briefcase },
   { to: '/#how-it-works', label: 'How It Works', icon: HelpCircle },
 ];
 
@@ -97,6 +98,11 @@ export default function Navbar() {
               <input
                 type="text"
                 placeholder="Search skills, people, projects…"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && e.target.value.trim()) {
+                    navigate(`/talent?query=${encodeURIComponent(e.target.value.trim())}`);
+                  }
+                }}
                 className="w-full rounded-lg border border-card-border bg-slate-50 py-2 pl-9 pr-4 text-sm text-slate-700 placeholder:text-slate-400 focus:border-brand-indigo focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-indigo focus:ring-offset-1"
                 aria-label="Search"
               />
@@ -112,8 +118,8 @@ export default function Navbar() {
                 className={({ isActive }) =>
                   [
                     'flex flex-col items-center gap-0.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
-                    isActive && to === '/'
-                      ? 'text-brand-indigo'
+                    isActive
+                      ? 'text-brand-indigo font-bold'
                       : 'text-slate-500 hover:text-slate-900',
                   ].join(' ')
                 }
@@ -128,6 +134,13 @@ export default function Navbar() {
             {/* Authenticated State vs Guest State */}
             {isAuthenticated ? (
               <div className="flex items-center gap-2">
+                <Link to="/projects/new">
+                  <Button size="sm" variant="outline" className="flex items-center gap-1.5 text-xs py-1.5 px-3">
+                    <Plus className="h-3.5 w-3.5" />
+                    <span>Post Project</span>
+                  </Button>
+                </Link>
+
                 <NavLink
                   to="/dashboard"
                   className={({ isActive }) =>
@@ -157,7 +170,7 @@ export default function Navbar() {
                     alt={displayName}
                     className="h-6 w-6 rounded-full border border-card-border object-cover"
                   />
-                  <span className="font-semibold text-xs truncate max-w-[90px]">
+                  <span className="font-semibold text-xs truncate max-w-[85px]">
                     {displayName}
                   </span>
                 </NavLink>
@@ -251,27 +264,22 @@ export default function Navbar() {
               </Link>
             )}
 
-            {/* Mobile search */}
-            <div className="border-b border-card-border p-4">
-              <div className="relative">
-                <Search
-                  className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
-                  aria-hidden="true"
-                />
-                <input
-                  type="text"
-                  placeholder="Search…"
-                  className="w-full rounded-lg border border-card-border bg-slate-50 py-2 pl-9 pr-4 text-sm placeholder:text-slate-400 focus:border-brand-indigo focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-indigo"
-                  aria-label="Search"
-                />
-              </div>
-            </div>
-
             {/* Mobile nav links */}
             <nav className="flex-1 overflow-y-auto p-4">
               <ul className="space-y-1">
                 {isAuthenticated && (
                   <>
+                    <li>
+                      <Link
+                        to="/projects/new"
+                        onClick={closeMobile}
+                        className="flex items-center gap-2 rounded-lg bg-indigo-50 text-brand-indigo font-bold px-3 py-2 text-xs mb-2"
+                      >
+                        <Plus className="h-4 w-4" />
+                        <span>Post a Project</span>
+                      </Link>
+                    </li>
+
                     <li>
                       <NavLink
                         to="/dashboard"
@@ -336,8 +344,8 @@ export default function Navbar() {
                       className={({ isActive }) =>
                         [
                           'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-                          isActive && to === '/'
-                            ? 'bg-indigo-50 text-brand-indigo'
+                          isActive
+                            ? 'bg-indigo-50 text-brand-indigo font-bold'
                             : 'text-slate-700 hover:bg-slate-50',
                         ].join(' ')
                       }

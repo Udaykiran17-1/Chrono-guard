@@ -86,26 +86,71 @@
 
 ---
 
-## Milestone 3: Talent Discovery & Search (Upcoming)
-- [ ] Searchable directory of student talent (`/explore`)
-- [ ] Granular multi-attribute filters (skills, department, year, availability, role)
-- [ ] Student profile preview cards with skill match indicators
-- [ ] Rule-based recommendation ranking (Section 16)
-- [ ] Direct contact and project invitation modals
+## Milestone 3: Talent Discovery, Project Marketplace & Structured Creation ✅
+
+### Step 3A: Database Migration & Integrity Triggers ✅
+- [x] `supabase/migrations/003_marketplace_and_projects.sql` with UUID PKs and strict RLS
+- [x] Tables: `projects`, `project_skills`, `saved_projects`, `saved_freelancers`
+- [x] PostgreSQL status transition trigger `trg_enforce_project_status_transition` enforcing valid workflow transitions
+- [x] Strict Row Level Security policies for project visibility, owner-scoped CRUD, and private bookmarks
+
+### Step 3B: Service Layer & Recommendation Logic ✅
+- [x] `src/services/talentService.js` with zero-query UI layer and granular filtering
+- [x] `src/services/projectService.js` with structured CRUD, state transitions, and save toggles
+- [x] Rule-based candidate matching engine (`getRecommendedFreelancers` per Section 16)
+- [x] Rule-based project recommendation engine (`getRecommendedProjects` per Section 16)
+- [x] Rich mock seed datasets for offline local sandbox testing
+
+### Step 3C: Talent Discovery Directory ✅
+- [x] Searchable student directory (`src/pages/talent/TalentDirectoryPage.jsx` at `/talent`)
+- [x] Sticky filter sidebar: Skill category, multi-skill selection, department, academic year, availability, proficiency level
+- [x] Sort selector: Recently Active, Recently Joined, Relevant Skills, Availability
+- [x] Responsive student cards with headline, primary skills pills, availability badges, and 1-click bookmarking
+
+### Step 3D: Structured Project Creation & Editing ✅
+- [x] Structured form (`src/pages/projects/CreateProjectPage.jsx` at `/projects/new` and `/projects/:id/edit`)
+- [x] Section 6.2 field decomposition: What needs doing, Why it's needed, Expected deliverables, Additional requirements
+- [x] Skill tagging with primary/secondary attributes
+- [x] Transparent compensation disclosure: Fixed, Negotiable, Unpaid, Volunteer, Other with explanatory notes
+- [x] Draft mode vs. Publish immediately support
+
+### Step 3E: Project Discovery Marketplace ✅
+- [x] Filterable marketplace (`src/pages/projects/ProjectDiscoveryPage.jsx` at `/projects`)
+- [x] Search keywords, category filter, budget type filter, required skills filter, and sorting
+- [x] Project cards displaying spots remaining (`filled / total`), compensation badge, deadline, and bookmark toggle
+
+### Step 3F: Detailed Project Brief & Contextual Actions ✅
+- [x] Project detail view (`src/pages/projects/ProjectDetailPage.jsx` at `/projects/:id`)
+- [x] Structured breakdown display (Scope, Purpose, Concrete Deliverables, Requirements)
+- [x] Creator management controls: Edit Project, Close Applications, Cancel with mandatory cancellation reason modal
+- [x] Recommended Freelancers matching widget for creators
+- [x] Peer actions: Bookmark project, placeholder "Apply for Project" action
+
+### Step 3G: Dashboard & Global Navigation Integration ✅
+- [x] Registered `/talent`, `/projects`, `/projects/new`, `/projects/:id`, `/projects/:id/edit` in `App.jsx`
+- [x] Updated Navbar with "Explore Talent", "Find Projects", and "+ Post Project" action button
+- [x] Dashboard updated with "Recommended Projects for You" (explainable match badges), "Projects I Posted", and bookmark counts
 
 ---
 
-## Milestone 4: Project Marketplace & Agreements (Upcoming)
-- [ ] Structured project posting wizard (`/projects/new`)
-- [ ] Project marketplace discovery & filtering (`/projects`)
-- [ ] Application submission & applicant management
+## Milestone 4: Applications, Project Agreements & Workspaces (Upcoming)
+- [ ] Application submission modal & screening questions
+- [ ] Creator applicant review dashboard (accept, decline, shortlist)
 - [ ] Versioned Project Agreements with mutual confirmation (Section 9)
-- [ ] Project workspaces & milestones tracking (Section 10)
+- [ ] Project workspaces & milestone deliverable tracking (Section 10)
+- [ ] Mid-project dispute resolution & scope adjustment workflows
 
 ---
 
-## Milestone 5: Club Management, Reviews & Handover (Upcoming)
+## Milestone 5: Campus Organizations, Committee Roles & Handover (Upcoming)
 - [ ] Organization profile & committee roles (Section 13)
-- [ ] Permanent organization freelancer directory & project costs
+- [ ] Permanent organization freelancer directory & project budget history
 - [ ] Committee handover preparation & transfer workflow
+- [ ] Outgoing/incoming committee lead transition checklists
+
+---
+
+## Milestone 6: Reviews, Reputation & Administrative Moderation (Upcoming)
 - [ ] Post-collaboration review & reputation scoring (Section 12)
+- [ ] Verified skill endorsements originating from completed projects
+- [ ] Admin moderation console for reporting and dispute intervention
